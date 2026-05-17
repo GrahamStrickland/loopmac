@@ -15,15 +15,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Controls.Material
-import QtQuick.Window
+// This is just a stub file until the `capture` library is written.
+#include <iostream>
 
-ApplicationWindow {
-    id: root
-    height: 460
-    width: 640
-    visible: true
-    title: qsTr("LoopMac")
-}
+#include "capture.h"
+
+namespace capture {
+void capture() { std::cout << "Hello from the capture library." << std::endl; }
+} // end namespace capture

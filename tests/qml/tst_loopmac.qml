@@ -16,14 +16,12 @@
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
 import QtQuick
-import QtQuick.Controls
-import QtQuick.Controls.Material
-import QtQuick.Window
+import QtTest
 
-ApplicationWindow {
-    id: root
-    height: 460
-    width: 640
-    visible: true
-    title: qsTr("LoopMac")
+TestCase {
+    name: "LoopMacTests"
+
+    function test_math() {
+        compare(2 + 2, 4, "2 + 2 = 4")
+    }
 }

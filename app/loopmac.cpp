@@ -15,15 +15,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Controls.Material
-import QtQuick.Window
+#include <iostream>
 
-ApplicationWindow {
-    id: root
-    height: 460
-    width: 640
-    visible: true
-    title: qsTr("LoopMac")
+#include "loopmac.h"
+
+LoopMac::LoopMac() : dummy{0} {
+  std::cout << "Hello, this is LoopMac!" << std::endl;
+}
+
+LoopMac::~LoopMac() {
+  std::cout << "Goodbye from LoopMac!" << std::endl;
 }

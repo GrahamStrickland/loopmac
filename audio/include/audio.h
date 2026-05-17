@@ -15,15 +15,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Controls.Material
-import QtQuick.Window
+#ifndef AUDIO_H
+#define AUDIO_H
 
-ApplicationWindow {
-    id: root
-    height: 460
-    width: 640
-    visible: true
-    title: qsTr("LoopMac")
-}
+namespace audio {
+void audio();
+} // end namespace audio
+
+#endif // AUDIO_H

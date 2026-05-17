@@ -15,15 +15,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Controls.Material
-import QtQuick.Window
+#include "tst_loopmac.h"
+#include "loopmac.h"
 
-ApplicationWindow {
-    id: root
-    height: 460
-    width: 640
-    visible: true
-    title: qsTr("LoopMac")
+void TestLoopMac::constructor() {
+  LoopMac loopmac;
+  QVERIFY(1 + 1 == 2);
 }
+
+QTEST_MAIN(TestLoopMac)
+

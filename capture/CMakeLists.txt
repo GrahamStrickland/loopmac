@@ -15,23 +15,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-cmake_minimum_required(VERSION 3.24)
-project(apploopmac VERSION 0.0.1 LANGUAGES CXX)
+add_library(capture STATIC ${CMAKE_CURRENT_SOURCE_DIR}/capture.cpp)
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+target_compile_features(capture PUBLIC cxx_std_23)
 
-include(CTest)
-
-# Libraries
-add_subdirectory(audio)
-add_subdirectory(capture)
-add_subdirectory(playback)
-
-# Executable
-add_subdirectory(app)
-
-# Tests
-if(BUILD_TESTING)
-    add_subdirectory(tests)
-endif()
+target_include_directories(capture PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

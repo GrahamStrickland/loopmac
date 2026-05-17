@@ -15,15 +15,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Controls.Material
-import QtQuick.Window
+#ifndef PLAYBACK_H
+#define PLAYBACK_H
 
-ApplicationWindow {
-    id: root
-    height: 460
-    width: 640
-    visible: true
-    title: qsTr("LoopMac")
-}
+namespace playback {
+void playback();
+} // end namespace playback
+
+#endif // PLAYBACK_H

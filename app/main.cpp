@@ -15,15 +15,21 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Controls.Material
-import QtQuick.Window
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
 
-ApplicationWindow {
-    id: root
-    height: 460
-    width: 640
-    visible: true
-    title: qsTr("LoopMac")
+int main(int argc, char *argv[]) {
+  QGuiApplication app(argc, argv);
+
+  QCoreApplication::setApplicationName("LoopMac");
+  QCoreApplication::setOrganizationName("Graham Strickland");
+  QCoreApplication::setApplicationVersion(QT_VERSION_STR);
+
+  QQmlApplicationEngine engine;
+  QObject::connect(&engine, &QQmlApplicationEngine::quit, &app,
+                   &QGuiApplication::quit);
+
+  engine.loadFromModule("LoopMac", "Main");
+
+  return app.exec();
 }

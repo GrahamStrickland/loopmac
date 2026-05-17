@@ -15,15 +15,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Controls.Material
-import QtQuick.Window
+#ifndef CAPTURE_H
+#define CAPTURE_H
 
-ApplicationWindow {
-    id: root
-    height: 460
-    width: 640
-    visible: true
-    title: qsTr("LoopMac")
-}
+namespace capture {
+void capture();
+} // end namespace capture
+
+#endif // CAPTURE_H
