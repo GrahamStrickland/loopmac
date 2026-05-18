@@ -41,4 +41,5 @@
 **/*.app/
 
 # Project files
-app/qml/
+app/qml/qmldir
+app/qml/qml/

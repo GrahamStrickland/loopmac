@@ -41,6 +41,7 @@ qt_add_qml_module(apploopmac
 target_link_libraries(apploopmac PRIVATE 
     loopmac_lib
     Qt6::Quick 
+    Qt6::QuickControls2
     Qt6::Svg
     Qt6::Multimedia
 )
