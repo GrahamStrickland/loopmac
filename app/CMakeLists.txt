@@ -36,7 +36,7 @@ set_target_properties(apploopmac PROPERTIES MACOSX_BUNDLE TRUE)
 qt_add_qml_module(apploopmac
     URI LoopMac
     QML_FILES
-        ../qml/Main.qml
+        qml/Main.qml
 )
 target_link_libraries(apploopmac PRIVATE 
     loopmac_lib

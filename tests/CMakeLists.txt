@@ -53,6 +53,6 @@ target_link_libraries(loopmactest PRIVATE Qt6::Test loopmac_lib)
 add_test(NAME loopmactest COMMAND loopmactest)
 target_include_directories(loopmactest PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/app/include)
 
-qt_add_executable(loopmacqmltest qml/tst_qml.cpp)
+qt_add_executable(loopmacqmltest app/qml/tst_qml.cpp)
 target_link_libraries(loopmacqmltest PRIVATE Qt6::QuickTest)
-add_test(NAME loopmacqmltest COMMAND loopmacqmltest -input ${CMAKE_CURRENT_SOURCE_DIR}/qml)
+add_test(NAME loopmacqmltest COMMAND loopmacqmltest -input ${CMAKE_CURRENT_SOURCE_DIR}/app/qml)
