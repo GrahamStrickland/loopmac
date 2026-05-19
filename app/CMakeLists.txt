@@ -21,6 +21,7 @@ find_package(Qt6 6.11 REQUIRED COMPONENTS Core Quick QuickControls2 Svg Multimed
 qt_standard_project_setup(REQUIRES 6.11)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTORCC ON)
 
 add_library(loopmac_lib STATIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/loopmac.cpp 
@@ -37,6 +38,9 @@ qt_add_qml_module(apploopmac
     URI LoopMac
     QML_FILES
         qml/Main.qml
+        qml/controls/PlaybackControl.qml
+        qml/controls/AudioControl.qml
+        qml/controls/PlaybackSeekControl.qml
 )
 target_link_libraries(apploopmac PRIVATE 
     loopmac_lib

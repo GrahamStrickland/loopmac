@@ -26,6 +26,8 @@
 **/build/
 **/LoopMac/
 **/*.cmake
+**/_deps/
+**/DartConfiguration.tcl
 
 # CTest files
 **/CTestTestfile.cmake

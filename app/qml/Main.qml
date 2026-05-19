@@ -16,24 +16,65 @@
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
 import QtQuick
+import QtQuick.Window
 import QtQuick.Controls
-import QtQuick.Controls.Material
+import QtQuick.Layouts
+import QtQuick.Dialogs
 import QtMultimedia
+
+import "controls"
 
 ApplicationWindow {
     id: root
-    height: 460
-    width: 640
+    height: 720
+    width: 1280
+    minimumHeight: 540
+    minimumWidth: 960
     visible: true
     title: qsTr("LoopMac")
+
+    property bool fullScreen: false
+
+    MessageDialog {
+        id: mediaError
+        buttons: MessageDialog.Ok
+    }
+
+    MouseArea {
+        id: activityListener
+        anchors.fill: parent
+        z: 1
+        propagateComposedEvents: true
+        hoverEnabled: true
+
+        property bool inactiveMouse: false
+
+        Timer {
+            id: timer
+            interval: 1500 // milliseconds
+            onTriggered: activityListener.inactiveMouse = true;
+        }
+
+        function activityHandler(mouse) {
+            if (activityListener.inactiveMouse)
+                activityListener.inactiveMouse = false;
+            timer.restart();
+            timer.start();
+            mouse.accepted = false;
+        }
+
+        onPositionChanged: mouse => activityHandler(mouse);
+        onPressed: mouse => activityHandler(mouse);
+        onDoubleClicked: mouse => mouse.accepted = false;
+    }
 
     MediaPlayer {
         id: mediaPlayer
 
         audioOutput: AudioOutput {
             id: audio
-            muted: false
-            volume: 100
+            muted: playbackController.muted
+            volume: playbackController.volume
         }
 
         onErrorOccurred: {
@@ -43,9 +84,31 @@ ApplicationWindow {
         source: new URL("file:///Users/graham/dev/loopmac/test.wav")
     }
 
-    MouseArea {
-        id: playArea
+    Rectangle {
         anchors.fill: parent
-        onPressed: mediaPlayer.play()
+        visible: mediaPlayer.mediaStatus === 0
+        color: "black"
+
+        TapHandler {
+            onDoubleTapped: {
+                root.fullScreen ? root.showNormal() : root.showFullScreen();
+                root.fullScreen = !root.fullScreen;
+            }
+        }
+    }
+
+    PlaybackControl {
+        id: playbackController
+
+        property bool showControls: !activityListener.inactiveMouse || busy
+        opacity: showControls
+        onShowControlsChanged: activityListener.cursorShape = showControls ? 
+                                Qt.ArrowCursor : Qt.BlankCursor
+
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+        mediaPlayer: mediaPlayer
     }
 }
