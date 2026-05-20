@@ -18,7 +18,6 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
-import QtQuick.Layouts
 import QtQuick.Dialogs
 import QtMultimedia
 
@@ -52,7 +51,7 @@ ApplicationWindow {
         Timer {
             id: timer
             interval: 1500 // milliseconds
-            onTriggered: activityListener.inactiveMouse = true;
+            onTriggered: activityListener.inactiveMouse = true
         }
 
         function activityHandler(mouse) {
@@ -63,9 +62,9 @@ ApplicationWindow {
             mouse.accepted = false;
         }
 
-        onPositionChanged: mouse => activityHandler(mouse);
-        onPressed: mouse => activityHandler(mouse);
-        onDoubleClicked: mouse => mouse.accepted = false;
+        onPositionChanged: mouse => activityHandler(mouse)
+        onPressed: mouse => activityHandler(mouse)
+        onDoubleClicked: mouse => mouse.accepted = false
     }
 
     MediaPlayer {
@@ -78,10 +77,11 @@ ApplicationWindow {
         }
 
         onErrorOccurred: {
-            console.log(`Error: ${mediaPlayer.errorString}`);
+            mediaError.text = mediaPlayer.errorString;
+            mediaError.open();
         }
 
-        source: new URL("file:///Users/graham/dev/loopmac/test.wav")
+        source: ""
     }
 
     Rectangle {
@@ -102,8 +102,7 @@ ApplicationWindow {
 
         property bool showControls: !activityListener.inactiveMouse || busy
         opacity: showControls
-        onShowControlsChanged: activityListener.cursorShape = showControls ? 
-                                Qt.ArrowCursor : Qt.BlankCursor
+        onShowControlsChanged: activityListener.cursorShape = showControls ? Qt.ArrowCursor : Qt.BlankCursor
 
         anchors.bottom: parent.bottom
         anchors.left: parent.left

@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
+#include <QCommandLineParser>
+#include <QDir>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
@@ -24,13 +26,25 @@ int main(int argc, char *argv[]) {
   QCoreApplication::setApplicationName("LoopMac");
   QCoreApplication::setOrganizationName("Graham Strickland");
   QCoreApplication::setApplicationVersion(QT_VERSION_STR);
+  QCommandLineParser parser;
+  parser.setApplicationDescription("Audio loopback and replay application");
+  parser.addHelpOption();
+  parser.addVersionOption();
+  parser.addPositionalArgument("url", "The URL(s) to open.");
+  parser.process(app);
 
   QQmlApplicationEngine engine;
-  QObject::connect(&engine, &QQmlApplicationEngine::quit, &app,
-                   &QGuiApplication::quit);
-  QObject::connect(
-      &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
-      []() { QCoreApplication::exit(-1); }, Qt::QueuedConnection);
+  const QUrl url(QStringLiteral("qrc:/Main.qml"));
+
+  if (!parser.positionalArguments().isEmpty()) {
+    QUrl source = QUrl::fromUserInput(parser.positionalArguments().at(0),
+                                      QDir::currentPath());
+    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated, &engine,
+                     [source](QObject *object, const QUrl &) {
+                       qDebug() << "setting source";
+                       object->setProperty("source", source);
+                     });
+  }
 
   engine.loadFromModule("LoopMac", "Main");
 
