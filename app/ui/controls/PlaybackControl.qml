@@ -63,7 +63,7 @@ Item {
 
     CustomButton {
         id: fileDialogButton
-        icon.source: "../images/folder-open.svg"
+        icon.source: "../../images/folder-open.svg"
         flat: false
         onClicked: fileDialog.open();
     }
@@ -74,7 +74,7 @@ Item {
 
         CustomRoundButton {
             id: backward10Button
-            icon.source: "../images/angle-double-small-left.svg"
+            icon.source: "../../images/angle-double-small-left.svg"
             onClicked: {
                 const pos = Math.max(0, playbackController.mediaPlayer.position - 10000);
                 playbackController.mediaPlayer.setPosition(pos);
@@ -84,20 +84,20 @@ Item {
         CustomRoundButton {
             id: playButton
             visible: playbackController.mediaPlayer.playbackState !== MediaPlayer.PlayingState
-            icon.source: "../images/play-circle.svg"
+            icon.source: "../../images/play-circle.svg"
             onClicked: playbackController.mediaPlayer.play()
         }
 
         CustomRoundButton {
             id: pauseButton
             visible: playbackController.mediaPlayer.playbackState === MediaPlayer.PlayingState
-            icon.source: "../images/pause-circle.svg"
+            icon.source: "../../images/pause-circle.svg"
             onClicked: playbackController.mediaPlayer.pause()
         }
 
         CustomRoundButton {
             id: forward10Button
-            icon.source: "../images/angle-double-small-right.svg"
+            icon.source: "../../images/angle-double-small-right.svg"
             onClicked: {
                 const pos = Math.max(0, playbackController.mediaPlayer.position + 10000);
                 playbackController.mediaPlayer.setPosition(pos);

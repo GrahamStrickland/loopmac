@@ -43,10 +43,10 @@ set_target_properties(apploopmac PROPERTIES MACOSX_BUNDLE TRUE)
 qt_add_qml_module(apploopmac
     URI LoopMac
     QML_FILES
-        Main.qml
-        controls/PlaybackControl.qml
-        controls/AudioControl.qml
-        controls/PlaybackSeekControl.qml
+        ui/Main.qml
+        ui/controls/PlaybackControl.qml
+        ui/controls/AudioControl.qml
+        ui/controls/PlaybackSeekControl.qml
     RESOURCES
         images/angle-double-small-left.svg
         images/angle-double-small-right.svg
