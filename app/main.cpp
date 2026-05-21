@@ -34,7 +34,6 @@ int main(int argc, char *argv[]) {
   parser.process(app);
 
   QQmlApplicationEngine engine;
-  const QUrl url(QStringLiteral("qrc:/Main.qml"));
 
   if (!parser.positionalArguments().isEmpty()) {
     QUrl source = QUrl::fromUserInput(parser.positionalArguments().at(0),
@@ -45,6 +44,10 @@ int main(int argc, char *argv[]) {
                        object->setProperty("source", source);
                      });
   }
+
+  QObject::connect(
+      &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
+      []() { QCoreApplication::exit(-1); }, Qt::QueuedConnection);
 
   engine.loadFromModule("LoopMac", "Main");
 

@@ -17,7 +17,13 @@
 
 include(GNUInstallDirs)
 
-find_package(Qt6 6.11 REQUIRED COMPONENTS Core Quick QuickControls2 Svg Multimedia)
+find_package(Qt6 6.11 REQUIRED COMPONENTS 
+    Core 
+    Quick 
+    QuickControls2 
+    Svg 
+    Multimedia
+)
 qt_standard_project_setup(REQUIRES 6.11)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -37,10 +43,10 @@ set_target_properties(apploopmac PROPERTIES MACOSX_BUNDLE TRUE)
 qt_add_qml_module(apploopmac
     URI LoopMac
     QML_FILES
-        ui/Main.qml
-        ui/controls/PlaybackControl.qml
-        ui/controls/AudioControl.qml
-        ui/controls/PlaybackSeekControl.qml
+        Main.qml
+        controls/PlaybackControl.qml
+        controls/AudioControl.qml
+        controls/PlaybackSeekControl.qml
     RESOURCES
         images/angle-double-small-left.svg
         images/angle-double-small-right.svg

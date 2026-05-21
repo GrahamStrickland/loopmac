@@ -50,7 +50,7 @@ Item {
             Layout.fillWidth: true
             enabled: seekController.mediaPlayer.seekable
             value: seekController.mediaPlayer.position / seekController.mediaPlayer.duration
-            onMoved: seekController.mediaPlayer.setPosition(value * seekController.mediaPlayer.duration)
+            onMoved: seekController.mediaPlayer.setPosition(value * seekController.mediaPlayer.duration);
         }
 
         Label {

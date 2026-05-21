@@ -29,10 +29,9 @@ Item {
     property alias muted: audioControl.muted
     property alias volume: audioControl.volume
 
-    property bool landscapePlaybackControls: root.width >= 668
     property bool busy: fileDialog.visible || audioControl.busy || playbackSeekControl.busy
 
-    implicitHeight: landscapePlaybackControls ? 168 : 208
+    implicitHeight: 168
 
     FileDialog {
         id: fileDialog
@@ -64,7 +63,7 @@ Item {
 
     CustomButton {
         id: fileDialogButton
-        icon.source: "../../images/folder-open.svg"
+        icon.source: "../images/folder-open.svg"
         flat: false
         onClicked: fileDialog.open();
     }
@@ -75,7 +74,7 @@ Item {
 
         CustomRoundButton {
             id: backward10Button
-            icon.source: "../../images/angle-double-small-left.svg"
+            icon.source: "../images/angle-double-small-left.svg"
             onClicked: {
                 const pos = Math.max(0, playbackController.mediaPlayer.position - 10000);
                 playbackController.mediaPlayer.setPosition(pos);
@@ -85,20 +84,20 @@ Item {
         CustomRoundButton {
             id: playButton
             visible: playbackController.mediaPlayer.playbackState !== MediaPlayer.PlayingState
-            icon.source: "../../images/play-circle.svg"
+            icon.source: "../images/play-circle.svg"
             onClicked: playbackController.mediaPlayer.play()
         }
 
         CustomRoundButton {
             id: pauseButton
             visible: playbackController.mediaPlayer.playbackState === MediaPlayer.PlayingState
-            icon.source: "../../images/pause-circle.svg"
+            icon.source: "../images/pause-circle.svg"
             onClicked: playbackController.mediaPlayer.pause()
         }
 
         CustomRoundButton {
             id: forward10Button
-            icon.source: "../../images/angle-double-small-right.svg"
+            icon.source: "../images/angle-double-small-right.svg"
             onClicked: {
                 const pos = Math.max(0, playbackController.mediaPlayer.position + 10000);
                 playbackController.mediaPlayer.setPosition(pos);
@@ -108,7 +107,7 @@ Item {
 
     AudioControl {
         id: audioControl
-        showSlider: root.width >= 960
+        showSlider: true
     }
 
     PlaybackSeekControl {
@@ -118,11 +117,16 @@ Item {
     }
 
     Frame {
-        id: landscapeLayout
+        id: controlsLayout
         anchors.fill: parent
         padding: 32
         topPadding: 28
-        visible: landscapePlaybackControls
+
+        LayoutItemProxy {
+            target: playbackSeekControl
+            Layout.topMargin: 16
+            Layout.bottomMargin: 16
+        }
 
         ColumnLayout {
             anchors.fill: parent
@@ -150,64 +154,6 @@ Item {
                     anchors.leftMargin: 30
                     anchors.verticalCenter: parent.verticalCenter
                 }
-            }
-
-            LayoutItemProxy {
-                target: playbackSeekControl
-                Layout.topMargin: 16
-                Layout.bottomMargin: 16
-            }
-        }
-    }
-
-    Frame {
-        id: portraitLayout
-        anchors.fill: parent
-        padding: 32
-        topPadding: 28
-        visible: !landscapePlaybackControls
-
-        ColumnLayout {
-            anchors.fill: parent
-            spacing: 16
-
-            Item {
-                Layout.fillWidth: true
-                implicitHeight: 40
-
-                LayoutItemProxy {
-                    id: fdbProxy_
-                    target: fileDialogButton
-                    anchors.left: parent.left
-                }
-            }
-        }
-
-        ColumnLayout {
-            anchors.fill: parent
-            spacing: 16
-
-            Item {
-                Layout.fillWidth: true
-                implicitHeight: 40
-
-                LayoutItemProxy {
-                    id: cbProxy_
-                    target: controlButtons
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
-
-                LayoutItemProxy {
-                    target: audioControl
-                    anchors.left: cbProxy_.right
-                    anchors.leftMargin: 16
-                }
-            }
-
-            LayoutItemProxy {
-                target: playbackSeekControl
-                Layout.topMargin: 8
-                Layout.bottomMargin: 8
             }
         }
     }
