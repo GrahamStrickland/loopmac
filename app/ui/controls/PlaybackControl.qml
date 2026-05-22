@@ -33,16 +33,6 @@ Item {
 
     implicitHeight: 168
 
-    FileDialog {
-        id: fileDialog
-        title: "Please choose a file"
-        onAccepted: {
-            playbackController.mediaPlayer.stop();
-            playbackController.mediaPlayer.source = fileDialog.selectedFile;
-            playbackController.mediaPlayer.play();
-        }
-    }
-
     component CustomButton: RoundButton {
         property int diameter: 40
         Layout.preferredWidth: diameter
@@ -61,59 +51,14 @@ Item {
         icon.height: 24
     }
 
-    CustomButton {
-        id: fileDialogButton
-        icon.source: "../../images/folder-open.svg"
-        flat: false
-        onClicked: fileDialog.open();
-    }
-
-    RowLayout {
-        id: controlButtons
-        spacing: 16
-
-        CustomRoundButton {
-            id: backward10Button
-            icon.source: "../../images/angle-double-small-left.svg"
-            onClicked: {
-                const pos = Math.max(0, playbackController.mediaPlayer.position - 10000);
-                playbackController.mediaPlayer.setPosition(pos);
-            }
+    FileDialog {
+        id: fileDialog
+        title: "Please choose a file"
+        onAccepted: {
+            playbackController.mediaPlayer.stop();
+            playbackController.mediaPlayer.source = fileDialog.selectedFile;
+            playbackController.mediaPlayer.play();
         }
-
-        CustomRoundButton {
-            id: playButton
-            visible: playbackController.mediaPlayer.playbackState !== MediaPlayer.PlayingState
-            icon.source: "../../images/play-circle.svg"
-            onClicked: playbackController.mediaPlayer.play()
-        }
-
-        CustomRoundButton {
-            id: pauseButton
-            visible: playbackController.mediaPlayer.playbackState === MediaPlayer.PlayingState
-            icon.source: "../../images/pause-circle.svg"
-            onClicked: playbackController.mediaPlayer.pause()
-        }
-
-        CustomRoundButton {
-            id: forward10Button
-            icon.source: "../../images/angle-double-small-right.svg"
-            onClicked: {
-                const pos = Math.max(0, playbackController.mediaPlayer.position + 10000);
-                playbackController.mediaPlayer.setPosition(pos);
-            }
-        }
-    }
-
-    AudioControl {
-        id: audioControl
-        showSlider: true
-    }
-
-    PlaybackSeekControl {
-        id: playbackSeekControl
-        Layout.fillWidth: true
-        mediaPlayer: playbackController.mediaPlayer
     }
 
     Frame {
@@ -122,37 +67,72 @@ Item {
         padding: 32
         topPadding: 28
 
-        LayoutItemProxy {
-            target: playbackSeekControl
-            Layout.topMargin: 16
-            Layout.bottomMargin: 16
-        }
-
         ColumnLayout {
             anchors.fill: parent
             spacing: 16
 
+            PlaybackSeekControl {
+                id: playbackSeekControl
+                Layout.fillWidth: true
+                mediaPlayer: playbackController.mediaPlayer
+            }
+
             Item {
                 Layout.fillWidth: true
+                Layout.fillHeight: true
                 implicitHeight: 40
 
-                LayoutItemProxy {
-                    id: fdbProxy
-                    target: fileDialogButton
+                CustomButton {
+                    id: fileDialogButton
+                    icon.source: "../../images/folder-open.svg"
+                    flat: false
+                    onClicked: fileDialog.open()
+
                     anchors.left: parent.left
                 }
 
-                LayoutItemProxy {
-                    id: cbProxy
-                    target: controlButtons
+                RowLayout {
+                    id: controlButtons
+                    spacing: 16
                     anchors.horizontalCenter: parent.horizontalCenter
+
+                    CustomRoundButton {
+                        id: backward10Button
+                        icon.source: "../../images/angle-double-small-left.svg"
+                        onClicked: {
+                            const pos = Math.max(0, playbackController.mediaPlayer.position - 10000);
+                            playbackController.mediaPlayer.setPosition(pos);
+                        }
+                    }
+
+                    CustomRoundButton {
+                        id: playButton
+                        visible: playbackController.mediaPlayer.playbackState !== MediaPlayer.PlayingState
+                        icon.source: "../../images/play-circle.svg"
+                        onClicked: playbackController.mediaPlayer.play()
+                    }
+
+                    CustomRoundButton {
+                        id: pauseButton
+                        visible: playbackController.mediaPlayer.playbackState === MediaPlayer.PlayingState
+                        icon.source: "../../images/pause-circle.svg"
+                        onClicked: playbackController.mediaPlayer.pause()
+                    }
+
+                    CustomRoundButton {
+                        id: forward10Button
+                        icon.source: "../../images/angle-double-small-right.svg"
+                        onClicked: {
+                            const pos = Math.max(0, playbackController.mediaPlayer.position + 10000);
+                            playbackController.mediaPlayer.setPosition(pos);
+                        }
+                    }
                 }
 
-                LayoutItemProxy {
-                    target: audioControl
-                    anchors.left: cbProxy.right
-                    anchors.leftMargin: 30
-                    anchors.verticalCenter: parent.verticalCenter
+                AudioControl {
+                    id: audioControl
+                    showSlider: true
+                    anchors.right: parent.right
                 }
             }
         }
