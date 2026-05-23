@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-// This is just a stub file until the `capture` library is written.
 #include <iostream>
 
 #include "capture.h"

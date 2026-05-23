@@ -39,7 +39,10 @@ target_link_libraries(loopmac_lib PRIVATE Qt6::Core)
 qt_add_executable(apploopmac 
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
-set_target_properties(apploopmac PROPERTIES MACOSX_BUNDLE TRUE)
+set_target_properties(apploopmac PROPERTIES 
+    MACOSX_BUNDLE TRUE
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
+)
 qt_add_qml_module(apploopmac
     URI LoopMac
     QML_FILES
