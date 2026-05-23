@@ -18,7 +18,6 @@
 #import "AudioManager.h"
 
 @interface AudioManager () {
-
 }
 @end
 
@@ -58,14 +57,16 @@ static AudioManager *sharedInstance = nil;
 
 - (void)initializeTCCFramework {
   // Load TCC framework
-  NSString *tccPath = @"/System/Library/PrivateFrameworks/TCC.framework/Versions/A/TCC";
+  NSString *tccPath =
+      @"/System/Library/PrivateFrameworks/TCC.framework/Versions/A/TCC";
   _tccHandle = dlopen([tccPath UTF8String], RTLD_NOW);
   if (!_tccHandle) {
     return;
   }
 
   // Get function pointers`
-  _preflightFunc = (TCCPreflightFuncType)dlsym(_tccHandle, "TCCAccessPreflight");
+  _preflightFunc =
+      (TCCPreflightFuncType)dlsym(_tccHandle, "TCCAccessPreflight");
   _requestFunc = (TCCRequestFuncType)dlsym(_tccHandle, "TCCAccessRequest");
 
   if (!_preflightFunc || !_requestFunc) {
@@ -77,7 +78,7 @@ static AudioManager *sharedInstance = nil;
 
 - (int)checkTCCPermission:(NSString *)service {
   if (!_preflightFunc) {
-    return 2;   // Not determined
+    return 2; // Not determined
   }
 
   int result = _preflightFunc((__bridge CFStringRef)service, NULL);
@@ -100,7 +101,8 @@ static AudioManager *sharedInstance = nil;
   return result;
 }
 
-- (void)requestTCCPermission:(NSString *)service completion:(void (^)(BOOL granted))completion {
+- (void)requestTCCPermission:(NSString *)service
+                  completion:(void (^)(BOOL granted))completion {
   if (!_requestFunc) {
     dispatch_async(dispatch_get_main_queue(), ^{
       completion(NO);
@@ -141,11 +143,12 @@ static AudioManager *sharedInstance = nil;
 }
 
 - (void)requestPermission:(void (^)(NSString *))completion {
-  [self requestTCCPermission:@"kTCCServiceAudioCapture" completion:^(BOOL granted) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      NSString *status = granted ? @"authorized" : @"denied";
-      completion(status);
-    });
-  }];
+  [self requestTCCPermission:@"kTCCServiceAudioCapture"
+                  completion:^(BOOL granted) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                      NSString *status = granted ? @"authorized" : @"denied";
+                      completion(status);
+                    });
+                  }];
 }
 @end
