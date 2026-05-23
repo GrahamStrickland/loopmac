@@ -45,3 +45,6 @@
 # Project files
 app/qml/qmldir
 app/qml/qml/
+
+# VSCode files
+*.code-workspace
