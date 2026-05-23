@@ -23,11 +23,11 @@ TEST_CASE("Audio capture manager constructor", "[audio_capture_manager]") {
   auto capture_manager = capture::audio_capture_manager{};
 };
 
-TEST_CASE("Audio capture manager get permission", "[get_permission]") {
+TEST_CASE("Audio capture manager get permission without request", "[get_permission]") {
   GIVEN("Audio capture manager") {
     auto capture_manager = capture::audio_capture_manager{};
 
-    THEN("Permission status denied") {
+    THEN("Permission status authorized") {
       capture::permission_status result = capture_manager.get_permission();
 
       REQUIRE(result == capture::permission_status::PermissionStatusAuthorized);
