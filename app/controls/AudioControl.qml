@@ -41,7 +41,7 @@ Item {
             implicitHeight: 40
             implicitWidth: 40
             radius: 4
-            icon.source: audioController.muted ? "../../images/volume-slash.svg" : "../../images/volume.svg"
+            icon.source: audioController.muted ? "../images/volume-slash.svg" : "../images/volume.svg"
             icon.width: audioController.iconDimension
             icon.height: audioController.iconDimension
             icon.color: palette.buttonText
