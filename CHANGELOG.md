@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Application/project name from "apploopmac" to "LoopMac"
+- QML module to `LoopMacUI` in loopmac_lib for QML testing
+- Millisecond formatting to M:SS:mmm in `PlaybackSeekControl`
 
 ## [0.0.1] - 2026-05-17
 
