@@ -65,7 +65,7 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
 
 /**
  * @brief Get current permission status for audio devices.
- * @return String containing permission status.
+ * @return Int containing permission status.
  */
 - (int)getPermission;
 
