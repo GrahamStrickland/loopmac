@@ -29,8 +29,8 @@ Item {
 
     function formatToMinutes(milliseconds) {
         const min = Math.floor(milliseconds / 60000);
-        const sec = ((milliseconds - min * 60000) / 1000).toFixed(1);
-        return `${min}:${sec.padStart(4, 0)}`;
+        const sec = ((milliseconds - min * 60000) / 1000).toFixed(3);
+        return `${min}:${sec.padStart(6, 0)}`;
     }
 
     RowLayout {
@@ -50,7 +50,7 @@ Item {
             Layout.fillWidth: true
             enabled: seekController.mediaPlayer.seekable
             value: seekController.mediaPlayer.position / seekController.mediaPlayer.duration
-            onMoved: seekController.mediaPlayer.setPosition(value * seekController.mediaPlayer.duration);
+            onMoved: seekController.mediaPlayer.setPosition(value * seekController.mediaPlayer.duration)
         }
 
         Label {

@@ -16,12 +16,34 @@
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
 import QtQuick
+import QtMultimedia
+
 import QtTest
 
-TestCase {
-    name: "LoopMacTests"
+import LoopMacUI
 
-    function test_math() {
-        compare(2 + 2, 4, "2 + 2 = 4")
+Item {
+    width: 800
+    height: 600
+
+    MediaPlayer {
+        id: mediaPlayer
+    }
+
+    PlaybackSeekControl {
+        id: seekControl
+        mediaPlayer: mediaPlayer
+    }
+
+    TestCase {
+        name: "PlaybackSeekControl"
+
+        function test_formatToMinutes() {
+            compare(seekControl.formatToMinutes(0), "0:00.000");
+            compare(seekControl.formatToMinutes(1), "0:00.001");
+            compare(seekControl.formatToMinutes(1000), "0:01.000");
+            compare(seekControl.formatToMinutes(61050), "1:01.050");
+            compare(seekControl.formatToMinutes(601050), "10:01.050");
+        }
     }
 }

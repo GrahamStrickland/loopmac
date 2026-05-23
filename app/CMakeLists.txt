@@ -43,8 +43,9 @@ set_target_properties(LoopMac PROPERTIES
     MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 )
-qt_add_qml_module(LoopMac
+qt_add_qml_module(loopmac_lib
     URI LoopMacUI
+    OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/LoopMacUI
     QML_FILES
         Main.qml
         controls/PlaybackControl.qml
@@ -60,8 +61,8 @@ qt_add_qml_module(LoopMac
         images/volume-slash.svg
         images/volume.svg
 )
-target_link_libraries(LoopMac PRIVATE 
-    loopmac_lib
+target_link_libraries(LoopMac PRIVATE
+    loopmac_libplugin
     Qt6::Quick 
     Qt6::QuickControls2
     Qt6::Svg
