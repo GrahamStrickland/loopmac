@@ -16,7 +16,13 @@
 # along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.24)
-project(apploopmac VERSION 0.0.1 LANGUAGES CXX OBJCXX)
+project(LoopMac 
+    VERSION 0.0.1 
+    SPDX_LICENSE "LGPL-3.0-or-later"
+    DESCRIPTION "Audio loopback and replay application for macOS"
+    HOMEPAGE_URL "https://github.com/GrahamStrickland/loopmac"
+    LANGUAGES CXX OBJCXX
+)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

@@ -36,15 +36,15 @@ add_library(loopmac_lib STATIC
 target_include_directories(loopmac_lib PUBLIC include)
 target_link_libraries(loopmac_lib PRIVATE Qt6::Core)
 
-qt_add_executable(apploopmac 
+qt_add_executable(LoopMac 
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
-set_target_properties(apploopmac PROPERTIES 
+set_target_properties(LoopMac PROPERTIES 
     MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 )
-qt_add_qml_module(apploopmac
-    URI LoopMac
+qt_add_qml_module(LoopMac
+    URI LoopMacUI
     QML_FILES
         Main.qml
         controls/PlaybackControl.qml
@@ -60,24 +60,26 @@ qt_add_qml_module(apploopmac
         images/volume-slash.svg
         images/volume.svg
 )
-target_link_libraries(apploopmac PRIVATE 
+target_link_libraries(LoopMac PRIVATE 
     loopmac_lib
     Qt6::Quick 
     Qt6::QuickControls2
     Qt6::Svg
     Qt6::Multimedia
 )
+target_compile_definitions(LoopMac PRIVATE 
+    APP_VERSION="${PROJECT_VERSION}"
+)
 
 qt_generate_deploy_qml_app_script(
-    TARGET apploopmac
+    TARGET LoopMac
     OUTPUT_SCRIPT deploy_script
-    MACOS_BUNDLE_POST_BUILD
     NO_UNSUPPORTED_PLATFORM_ERROR
     DEPLOY_USER_QML_MODULES_ON_UNSUPPORTED_PLATFORM
 )
 install(SCRIPT ${deploy_script})
 
-install(TARGETS apploopmac
+install(TARGETS LoopMac
     BUNDLE DESTINATION .
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
