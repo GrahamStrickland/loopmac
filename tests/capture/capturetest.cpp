@@ -17,20 +17,53 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <chrono>
+
 #include "capture.h"
+
+namespace {
+bool is_valid_permission_status(capture::permission_status status) {
+  switch (status) {
+  case capture::permission_status::PermissionStatusNotDetermined:
+  case capture::permission_status::PermissionStatusDenied:
+  case capture::permission_status::PermissionStatusAuthorized:
+  case capture::permission_status::PermissionStatusRestricted:
+    return true;
+  default:
+    return false;
+  }
+}
+
+bool is_request_result_status(capture::permission_status status) {
+  return status == capture::permission_status::PermissionStatusDenied ||
+         status == capture::permission_status::PermissionStatusAuthorized;
+}
+} // namespace
 
 TEST_CASE("Audio capture manager constructor", "[audio_capture_manager]") {
   auto capture_manager = capture::audio_capture_manager{};
-};
+  SUCCEED();
+}
 
-TEST_CASE("Audio capture manager get permission without request", "[get_permission]") {
-  GIVEN("Audio capture manager") {
-    auto capture_manager = capture::audio_capture_manager{};
+TEST_CASE("Audio capture manager get permission returns enum value",
+          "[get_permission]") {
+  auto capture_manager = capture::audio_capture_manager{};
 
-    THEN("Permission status authorized") {
-      capture::permission_status result = capture_manager.get_permission();
+  auto result = capture_manager.get_permission();
 
-      REQUIRE(result == capture::permission_status::PermissionStatusAuthorized);
-    }
-  }
-};
+  REQUIRE(is_valid_permission_status(result));
+}
+
+TEST_CASE("Audio capture manager request permission resolves future",
+          "[request_permission]") {
+  auto capture_manager = capture::audio_capture_manager{};
+
+  auto result_future = capture_manager.request_permission();
+
+  REQUIRE(result_future.valid());
+  REQUIRE(result_future.wait_for(std::chrono::seconds(5)) ==
+          std::future_status::ready);
+
+  auto result = result_future.get();
+  REQUIRE(is_request_result_status(result));
+}

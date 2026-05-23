@@ -65,7 +65,7 @@ static AudioCaptureManager *sharedInstance = nil;
     return;
   }
 
-  // Get function pointers`
+  // Get function pointers
   _preflightFunc =
       (TCCPreflightFuncType)dlsym(_tccHandle, "TCCAccessPreflight");
   _requestFunc = (TCCRequestFuncType)dlsym(_tccHandle, "TCCAccessRequest");
@@ -77,62 +77,44 @@ static AudioCaptureManager *sharedInstance = nil;
   }
 }
 
-- (int)checkTCCPermission:(NSString *)service {
+- (PermissionStatus)checkTCCPermission:(NSString *)service {
   if (!_preflightFunc) {
-    return 2; // Not determined
+    return PermissionStatusNotDetermined; // Not determined
   }
 
-  int result = _preflightFunc((__bridge CFStringRef)service, NULL);
-  NSString *status;
-  switch (result) {
-  case 0:
-    status = @"authorized";
-    break;
-  case 1:
-    status = @"denied";
-    break;
-  case 2:
-    status = @"not_determined";
-    break;
-  default:
-    status = @"unknown";
-    break;
-  }
-
+  auto result =
+      (PermissionStatus)_preflightFunc((__bridge CFStringRef)service, NULL);
   return result;
 }
 
 - (void)requestTCCPermission:(NSString *)service
                   completion:(void (^)(BOOL granted))completion {
   if (!_requestFunc) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      completion(NO);
-    });
+    completion(NO);
     return;
   }
 
   _requestFunc((__bridge CFStringRef)service, NULL, ^(BOOL granted) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      completion(granted);
-    });
+    completion(granted);
   });
 }
 
 #pragma mark - Permission Methods
 
-- (int)getPermission {
+- (PermissionStatus)getPermission {
   // Check audio recording permission using TCC
-  int audioResult = [self checkTCCPermission:@"kTCCServiceAudioCapture"];
+  auto audioResult =
+      (PermissionStatus)[self checkTCCPermission:@"kTCCServiceAudioCapture"];
   return audioResult;
 }
 
-- (void)requestPermission:(void (^)(NSString *))completion {
+- (void)requestPermission:(void (^)(PermissionStatus))completion {
   [self requestTCCPermission:@"kTCCServiceAudioCapture"
                   completion:^(BOOL granted) {
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                      NSString *status = granted ? @"authorized" : @"denied";
-                      completion(status);
-                    });
+                    auto status =
+                        granted ? PermissionStatus::PermissionStatusAuthorized
+                                : PermissionStatus::PermissionStatusDenied;
+                    completion(status);
                   }];
 }
 @end

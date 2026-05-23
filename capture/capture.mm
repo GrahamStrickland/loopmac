@@ -15,10 +15,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-#include "capture.h"
+#include <future>
+#include <memory>
+#include <thread>
 
 #import "AudioCaptureManager.h"
 #import <Foundation/Foundation.h>
+
+#include "capture.h"
 
 namespace capture {
 struct audio_capture_manager::impl {
@@ -35,7 +39,19 @@ audio_capture_manager::~audio_capture_manager() {
 }
 
 permission_status audio_capture_manager::get_permission() {
-  int permissionStatus = [pimpl->audioCaptureManager getPermission];
+  auto permissionStatus = [pimpl->audioCaptureManager getPermission];
   return (permission_status)permissionStatus;
+}
+
+std::future<permission_status> audio_capture_manager::request_permission() {
+  auto promise = std::make_shared<std::promise<permission_status>>();
+  std::future<permission_status> future = promise->get_future();
+
+  [pimpl->audioCaptureManager
+      requestPermission:^(PermissionStatus permissionStatus) {
+        promise->set_value((permission_status)permissionStatus);
+      }];
+
+  return future;
 }
 } // end namespace capture

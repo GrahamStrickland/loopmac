@@ -18,6 +18,7 @@
 #ifndef CAPTURE_H
 #define CAPTURE_H
 
+#include <future>
 namespace capture {
 
 enum permission_status {
@@ -33,6 +34,7 @@ public:
   ~audio_capture_manager();
 
   permission_status get_permission();
+  std::future<permission_status> request_permission();
 
 private:
   struct impl;

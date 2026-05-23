@@ -65,15 +65,15 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
 
 /**
  * @brief Get current permission status for audio devices.
- * @return Int containing permission status.
+ * @return PermissionStatus containing permission status.
  */
-- (int)getPermission;
+- (PermissionStatus)getPermission;
 
 /**
  * @brief Request permission to access system audio.
  * @param completion Block called with permission result.
  */
-- (void)requestPermission:(void (^)(NSString *))completion;
+- (void)requestPermission:(void (^)(PermissionStatus))completion;
 
 /**
  * @name Private TCC (Transparency, Consent, and Control) Methods
@@ -88,9 +88,9 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
 /**
  * @brief Check current TCC permission status for a service.
  * @param service The service identifier to check.
- * @return Integer representing the permission status.
+ * @return PermissionStatus representing the permission status.
  */
-- (int)checkTCCPermission:(NSString *)service;
+- (PermissionStatus)checkTCCPermission:(NSString *)service;
 
 /**
  * @brief Request TCC permission for a specific service.
