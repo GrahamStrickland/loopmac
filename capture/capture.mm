@@ -33,4 +33,9 @@ audio_capture_manager::~audio_capture_manager() {
   [pimpl->audioCaptureManager release];
   delete pimpl;
 }
+
+permission_status audio_capture_manager::get_permission() {
+  int permissionStatus = [pimpl->audioCaptureManager getPermission];
+  return (permission_status)permissionStatus;
+}
 } // end namespace capture

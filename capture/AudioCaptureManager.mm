@@ -120,27 +120,10 @@ static AudioCaptureManager *sharedInstance = nil;
 
 #pragma mark - Permission Methods
 
-- (NSString *)getPermission {
+- (int)getPermission {
   // Check audio recording permission using TCC
   int audioResult = [self checkTCCPermission:@"kTCCServiceAudioCapture"];
-  NSString *audioPermissionStatus;
-
-  switch (audioResult) {
-  case 0:
-    audioPermissionStatus = @"authorized";
-    break;
-  case 1:
-    audioPermissionStatus = @"denied";
-    break;
-  case 2:
-    audioPermissionStatus = @"not_determined";
-    break;
-  default:
-    audioPermissionStatus = @"not_determined";
-    break;
-  }
-
-  return audioPermissionStatus;
+  return audioResult;
 }
 
 - (void)requestPermission:(void (^)(NSString *))completion {

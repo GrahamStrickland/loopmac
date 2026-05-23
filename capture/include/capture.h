@@ -19,10 +19,20 @@
 #define CAPTURE_H
 
 namespace capture {
+
+enum permission_status {
+  PermissionStatusNotDetermined,
+  PermissionStatusDenied,
+  PermissionStatusAuthorized,
+  PermissionStatusRestricted
+};
+
 class audio_capture_manager {
 public:
   audio_capture_manager();
   ~audio_capture_manager();
+
+  permission_status get_permission();
 
 private:
   struct impl;
