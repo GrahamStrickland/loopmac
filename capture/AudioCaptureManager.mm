@@ -15,17 +15,17 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-#import "AudioManager.h"
+#import "AudioCaptureManager.h"
 
-@interface AudioManager () {
+@interface AudioCaptureManager () {
 }
 @end
 
-@implementation AudioManager
+@implementation AudioCaptureManager
 
 #pragma mark - Singleton
 
-static AudioManager *sharedInstance = nil;
+static AudioCaptureManager *sharedInstance = nil;
 
 + (instancetype)sharedInstance {
   static dispatch_once_t onceToken;
@@ -51,6 +51,7 @@ static AudioManager *sharedInstance = nil;
   if (_tccHandle) {
     dlclose(_tccHandle);
   }
+  [super dealloc];
 }
 
 #pragma mark - TCC Framework Methods

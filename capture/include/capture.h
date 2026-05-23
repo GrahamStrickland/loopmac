@@ -19,7 +19,15 @@
 #define CAPTURE_H
 
 namespace capture {
-void capture();
+class audio_capture_manager {
+public:
+  audio_capture_manager();
+  ~audio_capture_manager();
+
+private:
+  struct impl;
+  impl *pimpl;
+};
 } // end namespace capture
 
 #endif // CAPTURE_H

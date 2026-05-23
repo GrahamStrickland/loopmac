@@ -16,10 +16,14 @@
 # along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
 add_library(capture STATIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/capture.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/AudioManager.mm
+    ${CMAKE_CURRENT_SOURCE_DIR}/capture.mm
+    ${CMAKE_CURRENT_SOURCE_DIR}/AudioCaptureManager.mm
 )
 
 target_compile_features(capture PUBLIC cxx_std_23)
 
 target_include_directories(capture PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+find_library(FOUNDATION_LIBRARY Foundation REQUIRED)
+find_library(CORE_FOUNDATION_LIBRARY CoreFoundation REQUIRED)
+target_link_libraries(capture PUBLIC ${FOUNDATION_LIBRARY} ${CORE_FOUNDATION_LIBRARY})

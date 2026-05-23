@@ -15,10 +15,22 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-#include <iostream>
-
 #include "capture.h"
 
+#import "AudioCaptureManager.h"
+#import <Foundation/Foundation.h>
+
 namespace capture {
-void capture() { std::cout << "Hello from the capture library." << std::endl; }
+struct audio_capture_manager::impl {
+  AudioCaptureManager *audioCaptureManager;
+};
+
+audio_capture_manager::audio_capture_manager() : pimpl(new impl) {
+  pimpl->audioCaptureManager = [[AudioCaptureManager alloc] init];
+}
+
+audio_capture_manager::~audio_capture_manager() {
+  [pimpl->audioCaptureManager release];
+  delete pimpl;
+}
 } // end namespace capture

@@ -19,8 +19,6 @@
 
 #include "capture.h"
 
-TEST_CASE("Capture test", "[capture]") {
-  capture::capture();
-
-  REQUIRE(1 + 1 == 2);
+TEST_CASE("Test audio capture manager constructor", "[audio_capture_manager]") {
+  auto capture_manager = capture::audio_capture_manager{};
 };

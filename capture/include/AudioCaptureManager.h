@@ -16,8 +16,11 @@
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * @file AudioManager.h
- * @brief Handles macOS Core Audio device permissions.
+ * @file AudioCaptureManager.h
+ * @brief Core audio management and capture functionality for macOS.
+ *
+ * This class provides a high-level interface for capturing audio on macOS.
+ * It handles device permissions, audio setup, and streaming capture.
  */
 
 #import <Foundation/Foundation.h>
@@ -41,18 +44,18 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
                                    void (^completionHandler)(BOOL granted));
 
 /**
- * @class AudioManager
+ * @class AudioCaptureManager
  * @brief Manages permissions for audio device access and capture on macOS.
  */
-@interface AudioManager : NSObject {
+@interface AudioCaptureManager : NSObject {
   void *_tccHandle;
   TCCPreflightFuncType _preflightFunc;
   TCCRequestFuncType _requestFunc;
 }
 
 /**
- * @brief returns the singleton instance of AudioManager
- * @return The shared AudioManager instance.
+ * @brief returns the singleton instance of AudioCaptureManager
+ * @return The shared AudioCaptureManager instance.
  */
 + (instancetype)sharedInstance;
 
