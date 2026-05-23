@@ -91,6 +91,14 @@ Item {
                     anchors.left: parent.left
                 }
 
+                CustomButton {
+                    id: recordButton
+                    icon.source: "../images/dot-circle.svg"
+                    flat: false
+
+                    anchors.left: fileDialogButton.right
+                }
+
                 RowLayout {
                     id: controlButtons
                     spacing: 16

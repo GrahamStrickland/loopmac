@@ -54,6 +54,7 @@ qt_add_qml_module(loopmac_lib
     RESOURCES
         images/angle-double-small-left.svg
         images/angle-double-small-right.svg
+        images/dot-circle.svg
         images/folder-open.svg
         images/pause-circle.svg
         images/play-circle.svg
