@@ -29,12 +29,19 @@ FetchContent_MakeAvailable(Catch2)
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(Catch)
 
+add_library(utils STATIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils/utils.cpp
+)
+target_compile_features(utils PUBLIC cxx_std_23)
+target_include_directories(utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/utils/include)
+target_link_libraries(utils PUBLIC capture)
+
 add_executable(audio_test audio/audiotest.cpp)
 target_link_libraries(audio_test Catch2::Catch2WithMain audio)
 catch_discover_tests(audio_test)
 
 add_executable(capture_test capture/capturetest.cpp)
-target_link_libraries(capture_test Catch2::Catch2WithMain capture)
+target_link_libraries(capture_test Catch2::Catch2WithMain utils)
 catch_discover_tests(capture_test)
 
 add_executable(playback_test playback/playbacktest.cpp)
@@ -49,7 +56,7 @@ qt_add_executable(loopmactest
     ${CMAKE_CURRENT_SOURCE_DIR}/app/tst_audio_manager.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/app/include/tst_audio_manager.h
 )
-target_link_libraries(loopmactest PRIVATE Qt6::Test loopmac_lib)
+target_link_libraries(loopmactest PRIVATE Qt6::Test loopmac_lib utils)
 add_test(NAME loopmactest COMMAND loopmactest)
 target_include_directories(loopmactest PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/app/include)
 

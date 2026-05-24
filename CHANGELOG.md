@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.3] - 2026-05-24
+
+### Added
+
+- Permission request when record button pressed in QML UI
+- utils library to tests for permission status validation 
+
 ## [0.0.2] - 2026-05-23
 
 ### Added

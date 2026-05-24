@@ -15,22 +15,23 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-#include "audio_manager.h"
+#include "utils.h"
 
-AudioManager::AudioManager(QObject *parent) : QObject(parent) {}
-
-AudioManager::PermissionStatus AudioManager::getPermission() {
-  return static_cast<PermissionStatus>(captureManager.get_permission());
+namespace utils {
+bool is_valid_permission_status(capture::permission_status status) {
+  switch (status) {
+  case capture::permission_status::PermissionStatusNotDetermined:
+  case capture::permission_status::PermissionStatusDenied:
+  case capture::permission_status::PermissionStatusAuthorized:
+  case capture::permission_status::PermissionStatusRestricted:
+    return true;
+  default:
+    return false;
+  }
 }
 
-void AudioManager::requestPermission() {
-  captureManager.request_permission([this](capture::permission_status status) {
-    // The capture callback runs on a background thread, so hop back onto the
-    // thread this object lives on before emitting into QML.
-    QMetaObject::invokeMethod(this, [this, status] {
-      emit permissionResult(static_cast<PermissionStatus>(status));
-    });
-  });
+bool is_request_result_status(capture::permission_status status) {
+  return status == capture::permission_status::PermissionStatusDenied ||
+         status == capture::permission_status::PermissionStatusAuthorized;
 }
-
-AudioManager::~AudioManager() {}
+} // namespace

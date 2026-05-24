@@ -18,12 +18,16 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
+#include "audio_manager.h"
+
 int main(int argc, char *argv[]) {
   QGuiApplication app(argc, argv);
 
   QCoreApplication::setApplicationName("LoopMac");
   QCoreApplication::setOrganizationName("Graham Strickland");
   QCoreApplication::setApplicationVersion(APP_VERSION);
+
+  qmlRegisterType<AudioManager>("AudioManager", 1, 0, "AudioManager");
 
   QQmlApplicationEngine engine;
 

@@ -21,6 +21,8 @@ import QtQuick.Layouts
 import QtQuick.Dialogs
 import QtMultimedia
 
+import AudioManager 1.0
+
 Item {
     id: playbackController
 
@@ -32,6 +34,18 @@ Item {
     property bool busy: fileDialog.visible || audioControl.busy || playbackSeekControl.busy
 
     implicitHeight: 168
+
+    AudioManager {
+        id: audioManager
+        onPermissionResult: (status) => {
+            if (status === AudioManager.Authorized) {
+                // TODO: start recording
+                console.log("Audio capture authorized — starting recording");
+            } else {
+                console.log(`Audio capture permission not granted: ${status}`);
+            }
+        }
+    }
 
     component CustomButton: RoundButton {
         property int diameter: 40
@@ -95,6 +109,15 @@ Item {
                     id: recordButton
                     icon.source: "../images/dot-circle.svg"
                     flat: false
+                    onClicked: () => {
+                        if (audioManager.getPermission() === AudioManager.Authorized) {
+                            // TODO: start recording
+                            console.log("Already authorized — starting recording");
+                        } else {
+                            // Returns immediately; result arrives via onPermissionResult.
+                            audioManager.requestPermission();
+                        }
+                    }
 
                     anchors.left: fileDialogButton.right
                 }

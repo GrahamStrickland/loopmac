@@ -18,27 +18,12 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <chrono>
+#include <future>
+#include <memory>
 
 #include "capture.h"
+#include "utils.h"
 
-namespace {
-bool is_valid_permission_status(capture::permission_status status) {
-  switch (status) {
-  case capture::permission_status::PermissionStatusNotDetermined:
-  case capture::permission_status::PermissionStatusDenied:
-  case capture::permission_status::PermissionStatusAuthorized:
-  case capture::permission_status::PermissionStatusRestricted:
-    return true;
-  default:
-    return false;
-  }
-}
-
-bool is_request_result_status(capture::permission_status status) {
-  return status == capture::permission_status::PermissionStatusDenied ||
-         status == capture::permission_status::PermissionStatusAuthorized;
-}
-} // namespace
 
 TEST_CASE("Audio capture manager constructor", "[audio_capture_manager]") {
   auto capture_manager = capture::audio_capture_manager{};
@@ -51,23 +36,32 @@ TEST_CASE("Audio capture manager get permission returns enum value",
 
   auto result = capture_manager.get_permission();
 
-  REQUIRE(is_valid_permission_status(result));
+  REQUIRE(utils::is_valid_permission_status(result));
 }
 
-TEST_CASE("Audio capture manager request permission resolves future",
+TEST_CASE("Audio capture manager request permission resolves via callback",
           "[request_permission]") {
   auto capture_manager = capture::audio_capture_manager{};
 
-  auto result_future = capture_manager.request_permission();
+  // The callback runs on a background thread once the request resolves. Bridge
+  // it back to this thread with a promise so we can wait with a timeout. Use a
+  // shared_ptr so the promise outlives this scope: on timeout we SKIP and
+  // return, but the callback may still fire later (writing to the promise).
+  auto promise =
+      std::make_shared<std::promise<capture::permission_status>>();
+  auto result_future = promise->get_future();
 
-  REQUIRE(result_future.valid());
+  capture_manager.request_permission(
+      [promise](capture::permission_status status) {
+        promise->set_value(status);
+      });
 
-  // When the audio capture permission is undetermined, resolving the future
+  // When the audio capture permission is undetermined, resolving the callback
   // requires answering an interactive system prompt. That cannot happen in a
-  // non-interactive environment such as CI, so the future never becomes ready.
-  // Treat a timeout as a skip rather than a failure; on a developer machine
-  // where the permission state is already determined the future resolves
-  // immediately and the result is asserted below.
+  // non-interactive environment such as CI, so the callback never fires. Treat
+  // a timeout as a skip rather than a failure; on a developer machine where the
+  // permission state is already determined the callback runs immediately and
+  // the result is asserted below.
   if (result_future.wait_for(std::chrono::seconds(5)) !=
       std::future_status::ready) {
     SKIP("request_permission() did not resolve within the timeout; this "
@@ -76,5 +70,5 @@ TEST_CASE("Audio capture manager request permission resolves future",
   }
 
   auto result = result_future.get();
-  REQUIRE(is_request_result_status(result));
+  REQUIRE(utils::is_request_result_status(result));
 }

@@ -18,6 +18,7 @@
 #ifndef CAPTURE_H
 #define CAPTURE_H
 
+#include <functional>
 #include <future>
 
 /**
@@ -66,14 +67,16 @@ public:
   permission_status get_permission();
 
   /**
-   * @brief Request audio capture permission asynchronously.
-   * @return A `std::future` that resolves to the resulting `permission_status`.
+   * @brief Request audio capture permission asynchronously via a callback.
+   * @param callback Invoked with the resulting `permission_status` once the
+   * request resolves.
    *
-   * If permission is already determined by the system, the future may become
-   * ready quickly. Otherwise, completion depends on user interaction with the
-   * system permission prompt.
+   * The callback runs on a platform-internal background thread once the user
+   * responds to the system permission prompt. Callers that touch UI or other
+   * thread-affine state from the callback are responsible for marshalling back
+   * to the appropriate thread.
    */
-  std::future<permission_status> request_permission();
+  void request_permission(std::function<void(permission_status)> callback);
 
 private:
   struct impl;

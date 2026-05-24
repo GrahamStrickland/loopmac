@@ -29,20 +29,13 @@ qt_standard_project_setup(REQUIRES 6.11)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTORCC ON)
 
-add_library(loopmac_lib STATIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/audio_manager.cpp 
+add_library(loopmac_lib STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/audio_manager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/audio_manager.h
 )
 target_include_directories(loopmac_lib PUBLIC include)
-target_link_libraries(loopmac_lib PRIVATE Qt6::Core)
+target_link_libraries(loopmac_lib PUBLIC capture PRIVATE Qt6::Core)
 
-qt_add_executable(LoopMac 
-    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-)
-set_target_properties(LoopMac PROPERTIES 
-    MACOSX_BUNDLE TRUE
-    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
-)
 qt_add_qml_module(loopmac_lib
     URI LoopMacUI
     OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/LoopMacUI
@@ -62,7 +55,16 @@ qt_add_qml_module(loopmac_lib
         images/volume-slash.svg
         images/volume.svg
 )
+
+qt_add_executable(LoopMac 
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+)
+set_target_properties(LoopMac PROPERTIES 
+    MACOSX_BUNDLE TRUE
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
+)
 target_link_libraries(LoopMac PRIVATE
+    loopmac_lib
     loopmac_libplugin
     Qt6::Quick 
     Qt6::QuickControls2

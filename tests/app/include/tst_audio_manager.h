@@ -23,7 +23,9 @@ class TestAudioManager : public QObject {
   Q_OBJECT
 
 private slots:
-  void constructor();
+  // Permissions methods
+  void getPermission();
+  void requestPermission();
 };
 
 #endif // TST_AUDIO_MANAGER_H

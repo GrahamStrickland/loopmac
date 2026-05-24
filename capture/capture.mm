@@ -43,15 +43,11 @@ permission_status audio_capture_manager::get_permission() {
   return (permission_status)permissionStatus;
 }
 
-std::future<permission_status> audio_capture_manager::request_permission() {
-  auto promise = std::make_shared<std::promise<permission_status>>();
-  std::future<permission_status> future = promise->get_future();
-
+void audio_capture_manager::request_permission(
+    std::function<void(permission_status)> callback) {
   [pimpl->audioCaptureManager
       requestPermission:^(PermissionStatus permissionStatus) {
-        promise->set_value((permission_status)permissionStatus);
+        callback((permission_status)permissionStatus);
       }];
-
-  return future;
 }
 } // end namespace capture

@@ -20,14 +20,36 @@
 
 #include <QObject>
 
+#include "capture.h"
+
 class AudioManager : public QObject {
   Q_OBJECT
 
 public:
-    AudioManager();
+  explicit AudioManager(QObject *parent = nullptr);
 
-    ~AudioManager();
+  // Mirrors capture::permission_status, registered with the meta-object system
+  // so QML can compare against AudioManager.Authorized etc.
+  enum PermissionStatus {
+    NotDetermined = capture::PermissionStatusNotDetermined,
+    Denied = capture::PermissionStatusDenied,
+    Authorized = capture::PermissionStatusAuthorized,
+    Restricted = capture::PermissionStatusRestricted,
+  };
+  Q_ENUM(PermissionStatus)
+
+  Q_INVOKABLE PermissionStatus getPermission();
+
+  // Fire-and-forget: returns immediately and emits permissionResult() once the
+  // user responds to the system prompt, so the UI thread is never blocked.
+  Q_INVOKABLE void requestPermission();
+
+  ~AudioManager();
+
+signals:
+  void permissionResult(PermissionStatus status);
+
 private:
-    int dummy;
+  capture::audio_capture_manager captureManager;
 };
 #endif // AUDIO_MANAGER_H
