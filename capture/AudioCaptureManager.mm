@@ -17,6 +17,11 @@
 
 #import "AudioCaptureManager.h"
 #import "LogUtil.h"
+#import <AudioToolbox/AudioToolbox.h>
+#import <CoreAudio/CoreAudio.h>
+
+#include <CoreAudio/AudioHardwareTapping.h>
+#include <CoreAudio/CATapDescription.h>
 
 @interface AudioCaptureManager () {
 }
@@ -57,6 +62,47 @@ static AudioCaptureManager *sharedInstance = nil;
     dlclose(_tccHandle);
   }
   [super dealloc];
+}
+
+#pragma mark - Audio Setup Methods
+
+- (BOOL)setupAudioTapIfNeeded:(NSError **)error {
+  if (_tapUID != NULL) {
+    return YES;
+  }
+
+  Log("Setting up audio tap");
+
+  CATapDescription *desc =
+      [[CATapDescription alloc] initMonoGlobalTapButExcludeProcesses:@[]];
+
+  // Create a unique tap UID
+  _tapUID = [NSUUID UUID];
+
+  desc.name = [NSString stringWithFormat:@"audiorec-tap-%@", _tapUID];
+  desc.UUID = _tapUID;
+  desc.privateTap = true;
+  desc.muteBehavior = CATapUnmuted;
+  desc.exclusive = false;
+  desc.mixdown = true;
+
+  _tapObjectID = kAudioObjectUnknown;
+  OSStatus ret = AudioHardwareCreateProcessTap(desc, &_tapObjectID);
+
+  if (ret != kAudioHardwareNoError) {
+    if (error) {
+      *error = [NSError
+          errorWithDomain:@"audio-manager"
+                     code:ret
+                 userInfo:@{
+                   NSLocalizedDescriptionKey : @"Failed to create audio tap"
+                 }];
+    }
+    return NO;
+  }
+
+  Log("Audio tap setup successfully");
+  return YES;
 }
 
 #pragma mark - TCC Framework Methods

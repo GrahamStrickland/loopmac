@@ -23,6 +23,9 @@
  * It handles device permissions, audio setup, and streaming capture.
  */
 
+#import <AVFoundation/AVFoundation.h>
+#import <AudioToolbox/AudioToolbox.h>
+#import <CoreAudio/CoreAudio.h>
 #import <Foundation/Foundation.h>
 #import <dlfcn.h>
 
@@ -51,6 +54,10 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
   void *_tccHandle;
   TCCPreflightFuncType _preflightFunc;
   TCCRequestFuncType _requestFunc;
+
+  // Tap properties
+  NSUUID *_tapUID;
+  AudioObjectID _tapObjectID;
 }
 
 /**
@@ -60,12 +67,23 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
 + (instancetype)sharedInstance;
 
 /**
+ * @name Audio Setup and Management Methods
+ */
+
+/**
+ * @brief Set up audio tap if not already configured.
+ * @param error Pointer to `NSError` object that will be set if an error occurs.
+ * @return `YES` if startup was successful or already done, `NO` otherwise.
+ */
+- (BOOL)setupAudioTapIfNeeded:(NSError **)error;
+
+/**
  * @name Permission Methods
  */
 
 /**
  * @brief Get current permission status for audio devices.
- * @return PermissionStatus containing permission status.
+ * @return `PermissionStatus` containing permission status.
  */
 - (PermissionStatus)getPermission;
 
@@ -88,7 +106,7 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
 /**
  * @brief Check current TCC permission status for a service.
  * @param service The service identifier to check.
- * @return PermissionStatus representing the permission status.
+ * @return `PermissionStatus` representing the permission status.
  */
 - (PermissionStatus)checkTCCPermission:(NSString *)service;
 
