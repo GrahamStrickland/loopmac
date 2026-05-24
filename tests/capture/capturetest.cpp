@@ -58,6 +58,13 @@ TEST_CASE("Audio capture manager request permission resolves future",
           "[request_permission]") {
   auto capture_manager = capture::audio_capture_manager{};
 
+  if (capture_manager.get_permission() ==
+      capture::permission_status::PermissionStatusNotDetermined) {
+    SKIP("Audio capture permission is undetermined; resolving it requires an "
+         "interactive system prompt that cannot be answered in a "
+         "non-interactive environment such as CI.");
+  }
+
   auto result_future = capture_manager.request_permission();
 
   REQUIRE(result_future.valid());
