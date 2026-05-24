@@ -39,34 +39,6 @@ ApplicationWindow {
         buttons: MessageDialog.Ok
     }
 
-    MouseArea {
-        id: activityListener
-        anchors.fill: parent
-        z: 1
-        propagateComposedEvents: true
-        hoverEnabled: true
-
-        property bool inactiveMouse: false
-
-        Timer {
-            id: timer
-            interval: 1500 // milliseconds
-            onTriggered: activityListener.inactiveMouse = true
-        }
-
-        function activityHandler(mouse) {
-            if (activityListener.inactiveMouse)
-                activityListener.inactiveMouse = false;
-            timer.restart();
-            timer.start();
-            mouse.accepted = false;
-        }
-
-        onPositionChanged: mouse => activityHandler(mouse)
-        onPressed: mouse => activityHandler(mouse)
-        onDoubleClicked: mouse => mouse.accepted = false
-    }
-
     MediaPlayer {
         id: mediaPlayer
 
@@ -99,10 +71,6 @@ ApplicationWindow {
 
     PlaybackControl {
         id: playbackController
-
-        property bool showControls: !activityListener.inactiveMouse || busy
-        opacity: showControls
-        onShowControlsChanged: activityListener.cursorShape = showControls ? Qt.ArrowCursor : Qt.BlankCursor
 
         anchors.bottom: parent.bottom
         anchors.left: parent.left
