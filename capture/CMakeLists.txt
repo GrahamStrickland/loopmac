@@ -18,6 +18,7 @@
 add_library(capture STATIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/capture.mm
     ${CMAKE_CURRENT_SOURCE_DIR}/AudioCaptureManager.mm
+    ${CMAKE_CURRENT_SOURCE_DIR}/LogUtil.mm
 )
 
 target_compile_features(capture PUBLIC cxx_std_23)

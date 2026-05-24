@@ -16,6 +16,7 @@
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
 #import "AudioCaptureManager.h"
+#import "LogUtil.h"
 
 @interface AudioCaptureManager () {
 }
@@ -30,6 +31,7 @@ static AudioCaptureManager *sharedInstance = nil;
 + (instancetype)sharedInstance {
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
+    Log("Creating singleton instance");
     sharedInstance = [[self alloc] init];
   });
   return sharedInstance;
@@ -38,6 +40,7 @@ static AudioCaptureManager *sharedInstance = nil;
 - (instancetype)init {
   self = [super init];
   if (self) {
+    Log("Intitalizing TCC framework");
     [self initializeTCCFramework];
   }
 
@@ -48,7 +51,9 @@ static AudioCaptureManager *sharedInstance = nil;
 }
 
 - (void)dealloc {
+  Log("Deallocating");
   if (_tccHandle) {
+    Log("Closing TCC framework handle");
     dlclose(_tccHandle);
   }
   [super dealloc];
@@ -57,13 +62,18 @@ static AudioCaptureManager *sharedInstance = nil;
 #pragma mark - TCC Framework Methods
 
 - (void)initializeTCCFramework {
+  Log("Initializing TCC framework");
+
   // Load TCC framework
   NSString *tccPath =
       @"/System/Library/PrivateFrameworks/TCC.framework/Versions/A/TCC";
   _tccHandle = dlopen([tccPath UTF8String], RTLD_NOW);
   if (!_tccHandle) {
+    Log(std::string("Failed to load TCC framework: ") + std::string(dlerror()),
+        "error");
     return;
   }
+  Log("Successfully loaded TCC framework");
 
   // Get function pointers
   _preflightFunc =
@@ -71,30 +81,47 @@ static AudioCaptureManager *sharedInstance = nil;
   _requestFunc = (TCCRequestFuncType)dlsym(_tccHandle, "TCCAccessRequest");
 
   if (!_preflightFunc || !_requestFunc) {
+    Log(std::string("Failed to get TCC function pointers: ") +
+            std::string(dlerror()),
+        "error");
     dlclose(_tccHandle);
     _tccHandle = NULL;
     return;
   }
+  Log("Successfully initialized TCC functions");
 }
 
 - (PermissionStatus)checkTCCPermission:(NSString *)service {
+  Log("Checking TCC permission for service: " +
+      std::string([service UTF8String]));
+
   if (!_preflightFunc) {
+    Log("TCC preflight function not available", "error");
     return PermissionStatusNotDetermined; // Not determined
   }
 
   auto result =
       (PermissionStatus)_preflightFunc((__bridge CFStringRef)service, NULL);
+
+  Log("TCC permission result: " + std::to_string(result));
+
   return result;
 }
 
 - (void)requestTCCPermission:(NSString *)service
                   completion:(void (^)(BOOL granted))completion {
+  Log("Requesting TCC permission for service: " +
+      std::string([service UTF8String]));
+
   if (!_requestFunc) {
+    Log("TCC request function not available", "error");
     completion(NO);
     return;
   }
 
   _requestFunc((__bridge CFStringRef)service, NULL, ^(BOOL granted) {
+    Log("TCC permission request for " + std::string([service UTF8String]) +
+        " completed with result: " + (granted ? "granted" : "denied"));
     completion(granted);
   });
 }
@@ -102,18 +129,28 @@ static AudioCaptureManager *sharedInstance = nil;
 #pragma mark - Permission Methods
 
 - (PermissionStatus)getPermission {
+  Log("Getting permission");
+
   // Check audio recording permission using TCC
   auto audioResult =
       (PermissionStatus)[self checkTCCPermission:@"kTCCServiceAudioCapture"];
+
+  Log("System audio permission status: " + std::to_string(audioResult));
+
   return audioResult;
 }
 
 - (void)requestPermission:(void (^)(PermissionStatus))completion {
+  Log("Requesting permission");
+
   [self requestTCCPermission:@"kTCCServiceAudioCapture"
                   completion:^(BOOL granted) {
                     auto status =
                         granted ? PermissionStatus::PermissionStatusAuthorized
                                 : PermissionStatus::PermissionStatusDenied;
+                    Log("System audio permission request completed with "
+                        "status: " +
+                        std::to_string(status));
                     completion(status);
                   }];
 }
