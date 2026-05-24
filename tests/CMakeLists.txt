@@ -46,8 +46,8 @@ find_package(Qt6 6.11 REQUIRED COMPONENTS Test QuickTest)
 qt_standard_project_setup(REQUIRES 6.11)
 
 qt_add_executable(loopmactest 
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/tst_loopmac.cpp 
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/include/tst_loopmac.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/tst_audio_manager.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/include/tst_audio_manager.h
 )
 target_link_libraries(loopmactest PRIVATE Qt6::Test loopmac_lib)
 add_test(NAME loopmactest COMMAND loopmactest)

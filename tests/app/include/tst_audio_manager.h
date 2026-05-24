@@ -15,19 +15,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef LOOPMAC_H
-#define LOOPMAC_H
+#ifndef TST_AUDIO_MANAGER_H
+#define TST_AUDIO_MANAGER_H
+#include <QTest>
 
-#include <QObject>
-
-class LoopMac : public QObject {
+class TestAudioManager : public QObject {
   Q_OBJECT
 
-public:
-    LoopMac();
-
-    ~LoopMac();
-private:
-    int dummy;
+private slots:
+  void constructor();
 };
-#endif // LOOPMAC_H
+
+#endif // TST_AUDIO_MANAGER_H

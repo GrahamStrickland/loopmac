@@ -30,8 +30,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTORCC ON)
 
 add_library(loopmac_lib STATIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/loopmac.cpp 
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/loopmac.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/audio_manager.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/audio_manager.h
 )
 target_include_directories(loopmac_lib PUBLIC include)
 target_link_libraries(loopmac_lib PRIVATE Qt6::Core)
