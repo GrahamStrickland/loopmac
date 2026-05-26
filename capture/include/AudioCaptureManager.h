@@ -106,9 +106,9 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
 /**
  * @brief Check current TCC permission status for a service.
  * @param service The service identifier to check.
- * @return `PermissionStatus` representing the permission status.
+ * @return `int` representing the permission status.
  */
-- (PermissionStatus)checkTCCPermission:(NSString *)service;
+- (int)checkTCCPermission:(NSString *)service;
 
 /**
  * @brief Request TCC permission for a specific service.

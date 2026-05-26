@@ -44,6 +44,10 @@ add_executable(capture_test capture/capturetest.cpp)
 target_link_libraries(capture_test Catch2::Catch2WithMain utils)
 catch_discover_tests(capture_test)
 
+add_executable(audio_capture_manager_test capture/audiocapturemanagertest.mm)
+target_link_libraries(audio_capture_manager_test Catch2::Catch2WithMain capture)
+catch_discover_tests(audio_capture_manager_test)
+
 add_executable(playback_test playback/playbacktest.cpp)
 target_link_libraries(playback_test Catch2::Catch2WithMain playback)
 catch_discover_tests(playback_test)

@@ -137,7 +137,7 @@ static AudioCaptureManager *sharedInstance = nil;
   Log("Successfully initialized TCC functions");
 }
 
-- (PermissionStatus)checkTCCPermission:(NSString *)service {
+- (int)checkTCCPermission:(NSString *)service {
   Log("Checking TCC permission for service: " +
       std::string([service UTF8String]));
 
@@ -146,8 +146,7 @@ static AudioCaptureManager *sharedInstance = nil;
     return PermissionStatusNotDetermined; // Not determined
   }
 
-  auto result =
-      (PermissionStatus)_preflightFunc((__bridge CFStringRef)service, NULL);
+  auto result = _preflightFunc((__bridge CFStringRef)service, NULL);
 
   Log("TCC permission result: " + std::to_string(result));
 
@@ -180,6 +179,22 @@ static AudioCaptureManager *sharedInstance = nil;
   // Check audio recording permission using TCC
   auto audioResult =
       (PermissionStatus)[self checkTCCPermission:@"kTCCServiceAudioCapture"];
+
+  PermissionStatus audioPermissionStatus;
+  switch (audioResult) {
+  case 0:
+    audioPermissionStatus = PermissionStatus::PermissionStatusAuthorized;
+    break;
+  case 1:
+    audioPermissionStatus = PermissionStatus::PermissionStatusDenied;
+    break;
+  case 2:
+    audioPermissionStatus = PermissionStatus::PermissionStatusNotDetermined;
+    break;
+  default:
+    audioPermissionStatus = PermissionStatus::PermissionStatusNotDetermined;
+    break;
+  }
 
   Log("System audio permission status: " + std::to_string(audioResult));
 
