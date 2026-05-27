@@ -55,6 +55,10 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
   TCCPreflightFuncType _preflightFunc;
   TCCRequestFuncType _requestFunc;
 
+  // Audio properties
+  AudioDeviceID _aggregateDeviceID;
+  AudioStreamBasicDescription _sourceFormat;
+
   // Tap properties
   NSUUID *_tapUID;
   AudioObjectID _tapObjectID;
@@ -76,6 +80,13 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
  * @return `YES` if startup was successful or already done, `NO` otherwise.
  */
 - (BOOL)setupAudioTapIfNeeded:(NSError **)error;
+
+/**
+ * @brief Set up aggregate device if needed for audio capture.
+ * @param `error` Pointer to `NSError` object that will be set if an error occurs.
+ * @return `YES` if setup was successful or already done, `NO` otherwise.
+ */
+- (BOOL)setupAggregateDeviceIfNeeded:(NSError **)error;
 
 /**
  * @name Permission Methods

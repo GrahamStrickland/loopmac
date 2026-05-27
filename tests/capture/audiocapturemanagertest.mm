@@ -46,15 +46,6 @@ TEST_CASE("AudioCaptureManager sharedInstance returns the same singleton",
   }
 }
 
-TEST_CASE("AudioCaptureManager checkTCCPermission returns a valid status",
-          "[AudioCaptureManager][checkTCCPermission]") {
-  @autoreleasepool {
-    AudioCaptureManager *manager = [AudioCaptureManager sharedInstance];
-    auto result = [manager checkTCCPermission:@"kTCCServiceAudioCapture"];
-    REQUIRE(is_valid_status(result));
-  }
-}
-
 TEST_CASE(
     "AudioCaptureManager setupAudioTapIfNeeded succeeds and is idempotent",
     "[AudioCaptureManager][setupAudioTapIfNeeded]") {
@@ -75,6 +66,33 @@ TEST_CASE(
     BOOL secondResult = [manager setupAudioTapIfNeeded:&secondError];
     REQUIRE(secondResult == YES);
     REQUIRE(secondError == nil);
+  }
+}
+
+TEST_CASE(
+    "AudioCaptureManager setupAggregateDeviceIfNeeded succeeds and is idempotent",
+    "[AudioCaptureManager][setupAggregateDeviceIfNeeded]") {
+  @autoreleasepool {
+    AudioCaptureManager *manager = [AudioCaptureManager sharedInstance];
+
+    NSError *firstError = nil;
+    BOOL firstResult = [manager setupAggregateDeviceIfNeeded:&firstError];
+    REQUIRE(firstResult == YES);
+    REQUIRE(firstError == nil);
+
+    NSError *secondError = nil;
+    BOOL secondResult = [manager setupAggregateDeviceIfNeeded:&secondError];
+    REQUIRE(secondResult == YES);
+    REQUIRE(secondError == nil);
+  }
+}
+
+TEST_CASE("AudioCaptureManager checkTCCPermission returns a valid status",
+          "[AudioCaptureManager][checkTCCPermission]") {
+  @autoreleasepool {
+    AudioCaptureManager *manager = [AudioCaptureManager sharedInstance];
+    auto result = [manager checkTCCPermission:@"kTCCServiceAudioCapture"];
+    REQUIRE(is_valid_status(result));
   }
 }
 
