@@ -83,7 +83,8 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
 
 /**
  * @brief Set up aggregate device if needed for audio capture.
- * @param `error` Pointer to `NSError` object that will be set if an error occurs.
+ * @param `error` Pointer to `NSError` object that will be set if an error
+ * occurs.
  * @return `YES` if setup was successful or already done, `NO` otherwise.
  */
 - (BOOL)setupAggregateDeviceIfNeeded:(NSError **)error;
