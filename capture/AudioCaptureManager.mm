@@ -49,7 +49,6 @@ static AudioCaptureManager *sharedInstance = nil;
 - (instancetype)init {
   self = [super init];
   if (self) {
-    Log("Intitalizing TCC framework");
     [self initializeTCCFramework];
 
     // Initialize audio properties
