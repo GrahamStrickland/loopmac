@@ -171,6 +171,8 @@ static AudioCaptureManager *sharedInstance = nil;
     return NO;
   }
 
+  Log("Got output device ID: " + std::to_string(outputDeviceID));
+
   // Get device UIDs
   CFStringRef inputUID, outputUID;
   AudioObjectPropertyAddress uidPropertyAddress = {

@@ -69,11 +69,17 @@ TEST_CASE(
   }
 }
 
-TEST_CASE(
-    "AudioCaptureManager setupAggregateDeviceIfNeeded succeeds and is idempotent",
-    "[AudioCaptureManager][setupAggregateDeviceIfNeeded]") {
+TEST_CASE("AudioCaptureManager setupAggregateDeviceIfNeeded succeeds and is "
+          "idempotent",
+          "[AudioCaptureManager][setupAggregateDeviceIfNeeded]") {
   @autoreleasepool {
     AudioCaptureManager *manager = [AudioCaptureManager sharedInstance];
+
+    if ([manager checkTCCPermission:@"kTCCServiceAudioCapture"] != 0) {
+      SKIP("setupAggregateDeviceIfNeeded requires audio capture permission, "
+           "which "
+           "cannot be granted in a non-interactive environment such as CI.");
+    }
 
     NSError *firstError = nil;
     BOOL firstResult = [manager setupAggregateDeviceIfNeeded:&firstError];
