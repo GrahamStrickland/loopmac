@@ -57,7 +57,14 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
 
   // Audio properties
   AudioDeviceID _aggregateDeviceID;
+  AudioDeviceIOProcID _deviceProcID;
   AudioStreamBasicDescription _sourceFormat;
+
+  // State
+  BOOL _isCapturing;
+
+  // Callback for audio data
+  void (^_audioDataCallback)(NSData *audioData);
 
   // Tap properties
   NSUUID *_tapUID;
@@ -69,6 +76,33 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
  * @return The shared AudioCaptureManager instance.
  */
 + (instancetype)sharedInstance;
+
+/**
+ * @name Audio Control Methods
+ * Methods for controlling audio capture and streaming.
+ */
+
+/**
+ * @brief Start capturing audio from the system.
+ * @param error Pointer to `NSError` object that will be set if an error occurs.
+ * @param `YES` if capture started successfully, `NO` otherwise.
+ * @note Requires proper permissions and device setup before starting.
+ */
+- (BOOL)startCapture:(NSError **)error;
+
+/**
+ * @brief Stop the current audio capture session.
+ * @param error Pointer to `NSError` object that will be set if an error occurs.
+ * @return `YES` if capture stopped successfully, `NO` otherwise.
+ */
+- (BOOL)stopCapture:(NSError **)error;
+
+/**
+ * @brief Set the callback function for receiving captured audio data.
+ * @param callback Block that will be called with captured audio data.
+ * @note The callback is invoked on a dedicated audio queue thread.
+ */
+- (void)setAudioDataCallback:(void (^)(NSData *audioData))callback;
 
 /**
  * @name Audio Setup and Management Methods

@@ -24,6 +24,7 @@
 #include <CoreAudio/CATapDescription.h>
 
 // Constants for audio format
+static const Float64 kTargetSampleRate = 22050.0;
 static const UInt32 kPreferredBufferSize =
     4096; // Added preferred buffer size (samples)
 
@@ -52,15 +53,22 @@ static AudioCaptureManager *sharedInstance = nil;
     [self initializeTCCFramework];
 
     // Initialize audio properties
+    _isCapturing = NO;
     _aggregateDeviceID = kAudioDeviceUnknown;
-  }
+    _deviceProcID = NULL;
 
-  if ([self checkTCCPermission:@"kTCCServiceAudioCapture"] == 0) {
-    NSError *error = nil;
-    if (![self setupAudioTapIfNeeded:&error]) {
-      Log(std::string("Failed to setup audio tap: ") +
-              std::string([error.localizedDescription UTF8String]),
-          "error");
+    if ([self checkTCCPermission:@"kTCCServiceAudioCapture"] == 0) {
+      NSError *error = nil;
+      if (![self setupAudioTapIfNeeded:&error]) {
+        Log(std::string("Failed to setup audio tap: ") +
+                std::string([error.localizedDescription UTF8String]),
+            "error");
+      }
+      if (![self setupAggregateDeviceIfNeeded:&error]) {
+        Log(std::string("Failed to setup aggregate device: ") +
+                std::string([error.localizedDescription UTF8String]),
+            "error");
+      }
     }
   }
 
@@ -74,6 +82,331 @@ static AudioCaptureManager *sharedInstance = nil;
     dlclose(_tccHandle);
   }
   [super dealloc];
+}
+
+#pragma mark - Audio Control Methods
+
+- (BOOL)startCapture:(NSError **)error {
+  if (_isCapturing) {
+    return YES;
+  }
+
+  Log("Starting audio capture");
+
+  auto permission = [self getPermission];
+  if (permission != PermissionStatus::PermissionStatusAuthorized) {
+    return NO;
+  }
+
+  // Set up audio tap and aggregate device if needed
+  if (![self setupAudioTapIfNeeded:error]) {
+    return NO;
+  }
+
+  if (![self setupAggregateDeviceIfNeeded:error]) {
+    return NO;
+  }
+
+  // Log device IDs for debugging
+  Log("Using aggregate device ID: " + std::to_string(_aggregateDeviceID));
+  Log("Tap object ID: " + std::to_string(_tapObjectID));
+
+  // Set up IO proc for the aggregate device instead of tap
+  OSStatus status =
+      AudioDeviceCreateIOProcID(_aggregateDeviceID, HandleAudioDeviceIOProc,
+                                (__bridge void *)self, &_deviceProcID);
+
+  if (status != noErr) {
+    if (error) {
+      NSString *errorDescription = [NSString
+          stringWithFormat:
+              @"Failed to create IO proc for aggregate device. Status code: "
+              @"%d. This typically means there was an issue setting up the "
+              @"audio process callback for the device.",
+              (int)status];
+
+      *error = [NSError errorWithDomain:@"audio-capture-manager"
+                                   code:status
+                               userInfo:@{
+                                 NSLocalizedDescriptionKey : errorDescription,
+                                 @"OSStatus" : @(status),
+                                 @"ErrorLocation" : @"AudioDeviceCreateIOProcID"
+                               }];
+    }
+    return NO;
+  }
+
+  // Start the IO proc on the aggregate device
+  status = AudioDeviceStart(_aggregateDeviceID, _deviceProcID);
+  if (status != noErr) {
+    AudioDeviceDestroyIOProcID(_aggregateDeviceID, _deviceProcID);
+    _deviceProcID = NULL;
+    if (error) {
+      *error = [NSError
+          errorWithDomain:@"audio-capture-manager"
+                     code:status
+                 userInfo:@{
+                   NSLocalizedDescriptionKey : @"Failed to start audio capture"
+                 }];
+    }
+    return NO;
+  }
+
+  _isCapturing = YES;
+  Log("Audio capture started successfully");
+  return YES;
+}
+
+- (BOOL)stopCapture:(NSError **)error {
+  if (!_isCapturing) {
+    return YES;
+  }
+
+  Log("Stopping audio capture");
+
+  // Stop and destroy the IO proc on the aggregate device
+  if (_deviceProcID != NULL) {
+    OSStatus status = AudioDeviceStop(_aggregateDeviceID, _deviceProcID);
+    if (status != noErr) {
+      if (error) {
+        *error = [NSError
+            errorWithDomain:@"audio-capture-manager"
+                       code:status
+                   userInfo:@{
+                     NSLocalizedDescriptionKey : @"Failed to stop audio capture"
+                   }];
+      }
+      return NO;
+    }
+
+    status = AudioDeviceDestroyIOProcID(_aggregateDeviceID, _deviceProcID);
+    if (status != noErr) {
+      if (error) {
+        *error = [NSError
+            errorWithDomain:@"audio-capture-manager"
+                       code:status
+                   userInfo:@{
+                     NSLocalizedDescriptionKey : @"Failed to destroy IO proc"
+                   }];
+      }
+      return NO;
+    }
+
+    _deviceProcID = NULL;
+  }
+
+  _isCapturing = NO;
+  Log("Audio capture stopped successfully");
+  return YES;
+}
+
+#pragma mark - Audio Data Callback
+
+- (void)setAudioDataCallback:(void (^)(NSData *audioData))callback {
+  _audioDataCallback = [callback copy];
+}
+
+static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
+                                        const AudioTimeStamp *inNow,
+                                        const AudioBufferList *inInputData,
+                                        const AudioTimeStamp *inInputTime,
+                                        AudioBufferList *outOutputData,
+                                        const AudioTimeStamp *inOutputTime,
+                                        void *inClientData) {
+  AudioCaptureManager *audioManager =
+      (__bridge AudioCaptureManager *)inClientData;
+  [audioManager handleAudioInput:inInputData];
+  return noErr;
+}
+
+- (void)handleAudioInput:(const AudioBufferList *)bufferList {
+  if (!_isCapturing || !_audioDataCallback) {
+    return;
+  }
+
+  @autoreleasepool {
+    // Validate input data
+    if (!bufferList || bufferList->mNumberBuffers == 0) {
+      Log("Invalid buffer list received"
+          "error");
+      return;
+    }
+
+    const AudioBuffer *buffer = &bufferList->mBuffers[0];
+    UInt32 numFrames = buffer->mDataByteSize / sizeof(Float32);
+
+    // Determine channel count based on source format
+    BOOL isInterleaved =
+        !(_sourceFormat.mFormatFlags & kAudioFormatFlagIsNonInterleaved);
+    UInt32 numChannels = _sourceFormat.mChannelsPerFrame;
+    if (numChannels == 0) {
+      numChannels = bufferList->mNumberBuffers;
+    }
+
+    // For interleaved data, adjust numFrames
+    if (isInterleaved) {
+      numFrames = numFrames / numChannels;
+    }
+
+    // Validate frame count
+    if (numFrames == 0) {
+      Log("Invalid frame count", "error");
+      return;
+    }
+
+    @try {
+      // Convert to mono
+      Float32 *monoBuffer = [self convertToMono:bufferList numFrames:numFrames];
+      if (!monoBuffer) {
+        return;
+      }
+
+      // Resample
+      UInt32 resampledFrameLength = 0;
+      Float32 *resampledBuffer = [self resampleBuffer:monoBuffer
+                                          inputFrames:numFrames
+                                         outputFrames:&resampledFrameLength];
+      free(monoBuffer);
+
+      if (!resampledBuffer) {
+        return;
+      }
+
+      // Create NSData safely
+      NSData *audioData =
+          [[NSData alloc] initWithBytes:resampledBuffer
+                                 length:resampledFrameLength * sizeof(Float32)];
+      free(resampledBuffer);
+
+      // Send to callback on main thread
+      if (audioData) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          if (self->_audioDataCallback) {
+            self->_audioDataCallback(audioData);
+          }
+        });
+      }
+    } @catch (NSException *exception) {
+      Log(std::string("Exception in handleAudioInput: ") +
+              std::string([exception.description UTF8String]),
+          "error");
+    }
+  }
+}
+
+- (Float32 *)convertToMono:(const AudioBufferList *)bufferList
+                 numFrames:(UInt32)numFrames {
+  if (!bufferList || bufferList->mNumberBuffers == 0) {
+    Log("Invalid buffer list received", "error");
+    return NULL;
+  }
+
+  const AudioBuffer *buffer = &bufferList->mBuffers[0];
+  if (!buffer->mData || buffer->mDataByteSize == 0) {
+    Log("Invalid buffer data received", "error");
+    return NULL;
+  }
+
+  Float32 *samples = (Float32 *)buffer->mData;
+
+  // Determine channel count and format based on source format
+  BOOL isInterleaved =
+      !(_sourceFormat.mFormatFlags & kAudioFormatFlagIsNonInterleaved);
+  UInt32 numChannels = _sourceFormat.mChannelsPerFrame;
+  if (numChannels == 0) {
+    numChannels = bufferList->mNumberBuffers;
+  }
+
+  // Allocate mono buffer
+  Float32 *monoBuffer = (Float32 *)calloc(numFrames, sizeof(Float32));
+  if (!monoBuffer) {
+    Log("Failed to allocate memory for mono buffer", "error");
+    return NULL;
+  }
+
+  // Merge channels to mono based on format
+  if (isInterleaved) {
+    // Handle interleave d format (all channels in one buffer)
+    for (UInt32 frame = 0; frame < numFrames; frame++) {
+      float sum = 0.0f;
+      for (UInt32 channel = 0; channel < numChannels; channel++) {
+        sum += samples[frame * numChannels + channel];
+      }
+      monoBuffer[frame] = sum / numChannels;
+    }
+  } else {
+    // Handle non-interleaved format (separate buffers for each channel)
+    for (UInt32 frame = 0; frame < numFrames; frame++) {
+      float sum = 0.0f;
+      for (UInt32 channel = 0; channel < numChannels; channel++) {
+        const AudioBuffer *channelBuffer = &bufferList->mBuffers[channel];
+        Float32 *channelData = (Float32 *)channelBuffer->mData;
+        sum += channelData[frame];
+      }
+      monoBuffer[frame] = sum / numChannels;
+    }
+  }
+
+  return monoBuffer;
+}
+
+- (Float32 *)resampleBuffer:(Float32 *)inputBuffer
+                inputFrames:(UInt32)inputFrames
+               outputFrames:(UInt32 *)outputFrames {
+  Float64 sourceRate = _sourceFormat.mSampleRate;
+  Float64 ratio = sourceRate / kTargetSampleRate;
+  UInt32 newFrameLength = (UInt32)(inputFrames / ratio);
+
+  if (newFrameLength == 0) {
+    Log("Invalid resampled frame length", "error");
+    return NULL;
+  }
+
+  // Allocate buffer for resampled data
+  Float32 *resampledBuffer = (Float32 *)calloc(newFrameLength, sizeof(Float32));
+  if (!resampledBuffer) {
+    Log("Failed to allocate memory for resampled buffer", "error");
+    return NULL;
+  }
+
+  // Perform sinc sampling
+  const UInt32 windowSize = 16;
+  const UInt32 halfWindow = windowSize / 2;
+  const float M_2PI = 2.0f * M_PI;
+
+  for (UInt32 newIndex = 0; newIndex <= newFrameLength; newIndex++) {
+    float position = newIndex * ratio;
+    int32_t centerIndex = (int32_t)floorf(position);
+    float fracOffset = position - centerIndex;
+    float sum = 0.0f;
+    float weightSum = 0.0f;
+
+    for (int32_t i = -(int32_t)halfWindow; i <= (int32_t)halfWindow; i++) {
+      int32_t sampleIndex = centerIndex + i;
+
+      if (sampleIndex < 0 || (UInt32)sampleIndex >= inputFrames) {
+        continue;
+      }
+
+      float x = fracOffset - i;
+      // Use normalized sinc function
+      float sincValue = (x == 0.0f) ? 1.0f : sinf(M_PI * x) / (M_PI * x);
+      // Blackman window for better frequency response
+      float windowValue = 0.42f -
+                          0.5f * cosf(M_PI * (i + halfWindow) / halfWindow) +
+                          0.08f * cosf(M_2PI * (i + halfWindow) / halfWindow);
+      float weight = sincValue * windowValue;
+
+      sum += inputBuffer[sampleIndex] * weight;
+      weightSum += weight;
+    }
+
+    // Normalize by total weight
+    resampledBuffer[newIndex] = weightSum > 0.0f ? sum / weightSum : 0.0f;
+  }
+
+  *outputFrames = newFrameLength;
+  return resampledBuffer;
 }
 
 #pragma mark - Audio Setup Methods
@@ -479,7 +812,7 @@ static AudioCaptureManager *sharedInstance = nil;
 
   Log("System audio permission status: " + std::to_string(audioResult));
 
-  return audioResult;
+  return audioPermissionStatus;
 }
 
 - (void)requestPermission:(void (^)(PermissionStatus))completion {

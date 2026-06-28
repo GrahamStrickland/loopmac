@@ -46,6 +46,31 @@ TEST_CASE("AudioCaptureManager sharedInstance returns the same singleton",
   }
 }
 
+TEST_CASE("AudioCaptureManager starts and stops audio capture correctly",
+          "[AudioCaptureManager][start/stopCapture]") {
+  @autoreleasepool {
+    AudioCaptureManager *manager = [AudioCaptureManager sharedInstance];
+
+    if ([manager checkTCCPermission:@"kTCCServiceAudioCapture"] != 0) {
+      SKIP("startCapture requires audio capture permission, which "
+           "cannot be granted in a non-interactive environment such as CI.");
+    }
+
+    NSError *error = nil;
+    BOOL startResult = [manager startCapture:&error];
+    REQUIRE(startResult == YES);
+    REQUIRE(error == nil);
+
+    BOOL stopResult = [manager stopCapture:&error];
+    REQUIRE(stopResult == YES);
+    REQUIRE(error == nil);
+
+    stopResult = [manager stopCapture:&error];
+    REQUIRE(stopResult == YES);
+    REQUIRE(error == nil);
+  }
+}
+
 TEST_CASE(
     "AudioCaptureManager setupAudioTapIfNeeded succeeds and is idempotent",
     "[AudioCaptureManager][setupAudioTapIfNeeded]") {
