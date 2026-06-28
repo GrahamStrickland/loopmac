@@ -18,38 +18,39 @@
 #ifndef AUDIO_MANAGER_H
 #define AUDIO_MANAGER_H
 
-#include <QObject>
+#include <functional>
 
 #include "capture.h"
 
-class AudioManager : public QObject {
-  Q_OBJECT
-
+/**
+ * @class AudioManager
+ * @brief Thin UI-facing wrapper around capture::audio_capture_manager.
+ *
+ * Mirrors capture::permission_status and marshals the asynchronous permission
+ * result back onto the main (UI) thread so AppKit callers can update views
+ * directly from the callback.
+ */
+class AudioManager {
 public:
-  explicit AudioManager(QObject *parent = nullptr);
-
-  // Mirrors capture::permission_status, registered with the meta-object system
-  // so QML can compare against AudioManager.Authorized etc.
   enum PermissionStatus {
     NotDetermined = capture::PermissionStatusNotDetermined,
     Denied = capture::PermissionStatusDenied,
     Authorized = capture::PermissionStatusAuthorized,
     Restricted = capture::PermissionStatusRestricted,
   };
-  Q_ENUM(PermissionStatus)
 
-  Q_INVOKABLE PermissionStatus getPermission();
-
-  // Fire-and-forget: returns immediately and emits permissionResult() once the
-  // user responds to the system prompt, so the UI thread is never blocked.
-  Q_INVOKABLE void requestPermission();
-
+  AudioManager();
   ~AudioManager();
 
-signals:
-  void permissionResult(PermissionStatus status);
+  PermissionStatus getPermission();
+
+  // Fire-and-forget: returns immediately and invokes `callback` on the main
+  // thread once the user responds to the system prompt, so the UI thread is
+  // never blocked and callers may touch views directly from the callback.
+  void requestPermission(std::function<void(PermissionStatus)> callback);
 
 private:
   capture::audio_capture_manager captureManager;
 };
+
 #endif // AUDIO_MANAGER_H

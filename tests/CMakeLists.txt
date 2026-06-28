@@ -52,18 +52,11 @@ add_executable(playback_test playback/playbacktest.cpp)
 target_link_libraries(playback_test Catch2::Catch2WithMain playback)
 catch_discover_tests(playback_test)
 
-# Qt tests
-find_package(Qt6 6.11 REQUIRED COMPONENTS Test QuickTest)
-qt_standard_project_setup(REQUIRES 6.11)
+# App (native UI) tests
+add_executable(time_format_test app/time_format_test.cpp)
+target_link_libraries(time_format_test Catch2::Catch2WithMain loopmac_lib)
+catch_discover_tests(time_format_test)
 
-qt_add_executable(loopmactest 
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/tst_audio_manager.cpp 
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/include/tst_audio_manager.h
-)
-target_link_libraries(loopmactest PRIVATE Qt6::Test loopmac_lib utils)
-add_test(NAME loopmactest COMMAND loopmactest)
-target_include_directories(loopmactest PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/app/include)
-
-qt_add_executable(loopmacqmltest app/tst_qml.cpp)
-target_link_libraries(loopmacqmltest PRIVATE loopmac_libplugin Qt6::QuickTest)
-add_test(NAME loopmacqmltest COMMAND loopmacqmltest -input ${CMAKE_CURRENT_SOURCE_DIR}/app)
+add_executable(audio_manager_test app/audio_manager_test.cpp)
+target_link_libraries(audio_manager_test Catch2::Catch2WithMain loopmac_lib utils)
+catch_discover_tests(audio_manager_test)

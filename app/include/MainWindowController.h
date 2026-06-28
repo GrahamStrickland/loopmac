@@ -15,35 +15,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick
-import QtMultimedia
+#import <AppKit/AppKit.h>
 
-import QtTest
+NS_ASSUME_NONNULL_BEGIN
 
-import LoopMacUI
+/// Owns the main window, its dark content area, and the bottom transport bar.
+@interface MainWindowController : NSWindowController
+@end
 
-Item {
-    width: 800
-    height: 600
-
-    MediaPlayer {
-        id: mediaPlayer
-    }
-
-    PlaybackSeekControl {
-        id: seekControl
-        mediaPlayer: mediaPlayer
-    }
-
-    TestCase {
-        name: "PlaybackSeekControl"
-
-        function test_formatToMinutes() {
-            compare(seekControl.formatToMinutes(0), "0:00.000");
-            compare(seekControl.formatToMinutes(1), "0:00.001");
-            compare(seekControl.formatToMinutes(1000), "0:01.000");
-            compare(seekControl.formatToMinutes(61050), "1:01.050");
-            compare(seekControl.formatToMinutes(601050), "10:01.050");
-        }
-    }
-}
+NS_ASSUME_NONNULL_END

@@ -15,5 +15,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-#include <QtQuickTest>
-QUICK_TEST_MAIN(loopmacqmltest)
+#include <catch2/catch_test_macros.hpp>
+
+#include "audio_manager.h"
+#include "capture.h"
+#include "utils.h"
+
+// requestPermission() is intentionally not covered: it only resolves once the
+// user answers the interactive system prompt, which cannot be automated.
+TEST_CASE("getPermission returns a valid status", "[audio_manager]") {
+  AudioManager audioManager;
+  auto result =
+      static_cast<capture::permission_status>(audioManager.getPermission());
+
+  REQUIRE(utils::is_valid_permission_status(result));
+}

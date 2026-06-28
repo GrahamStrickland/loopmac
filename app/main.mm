@@ -15,17 +15,20 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef TST_AUDIO_MANAGER_H
-#define TST_AUDIO_MANAGER_H
-#include <QTest>
+#import <AppKit/AppKit.h>
 
-class TestAudioManager : public QObject {
-  Q_OBJECT
+#import "AppDelegate.h"
 
-private slots:
-  // Permissions methods
-  void getPermission();
-  void requestPermission();
-};
+int main(int argc, const char *argv[]) {
+  @autoreleasepool {
+    NSApplication *app = [NSApplication sharedApplication];
+    app.activationPolicy = NSApplicationActivationPolicyRegular;
 
-#endif // TST_AUDIO_MANAGER_H
+    // Held for the lifetime of the run loop; NSApplication.delegate is weak.
+    AppDelegate *delegate = [[AppDelegate alloc] init];
+    app.delegate = delegate;
+
+    [app run];
+  }
+  return 0;
+}

@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.4] - 2026-06-28
+
+### Changed
+
+- Replaced the Qt6/QML user interface with a native macOS AppKit UI written in
+  Objective-C++ (`main.mm`, `AppDelegate`, `MainWindowController`,
+  `PlaybackControlView`)
+- Replaced Qt Multimedia `MediaPlayer` with an AVFoundation-backed
+  `PlaybackEngine` (`AVAudioPlayer`) for audio file playback
+- Replaced bundled SVG icons with native SF Symbols
+- Rewrote `AudioManager` as a plain Objective-C++ wrapper (no `QObject`),
+  marshalling the permission callback to the main queue via Grand Central Dispatch
+- Dropped all Qt6 dependencies from the build; `LoopMac` now links AppKit,
+  AVFoundation, and UniformTypeIdentifiers directly
+
+### Removed
+
+- Qt6/QML UI files, bundled SVG assets, and Qt-based tests
+
+### Added
+
+- `format_to_minutes` time-formatting utility with Catch2 coverage (extracted
+  from `PlaybackSeekControl.qml`)
+
 ## [0.0.3] - 2026-05-24
 
 ### Added

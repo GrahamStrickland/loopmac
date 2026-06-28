@@ -17,7 +17,7 @@
 
 cmake_minimum_required(VERSION 3.24)
 project(LoopMac 
-    VERSION 0.0.3 
+    VERSION 0.0.4 
     SPDX_LICENSE "LGPL-3.0-or-later"
     DESCRIPTION "Audio loopback and replay application for macOS"
     HOMEPAGE_URL "https://github.com/GrahamStrickland/loopmac"

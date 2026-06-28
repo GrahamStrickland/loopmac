@@ -15,22 +15,22 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-#include "audio_manager.h"
+#import <AppKit/AppKit.h>
 
-AudioManager::AudioManager(QObject *parent) : QObject(parent) {}
+NS_ASSUME_NONNULL_BEGIN
 
-AudioManager::PermissionStatus AudioManager::getPermission() {
-  return static_cast<PermissionStatus>(captureManager.get_permission());
-}
+@class PlaybackEngine;
 
-void AudioManager::requestPermission() {
-  captureManager.request_permission([this](capture::permission_status status) {
-    // The capture callback runs on a background thread, so hop back onto the
-    // thread this object lives on before emitting into QML.
-    QMetaObject::invokeMethod(this, [this, status] {
-      emit permissionResult(static_cast<PermissionStatus>(status));
-    });
-  });
-}
+/// Native transport containing seek slider with time labels, transport buttons, 
+/// file open, record, and volume/mute controls.
+@interface PlaybackControlView : NSView
 
-AudioManager::~AudioManager() {}
+- (instancetype)initWithEngine:(PlaybackEngine *)engine;
+
+/// Presents an open panel and loads the chosen file (also the File ▸ Open… target
+/// via the responder chain).
+- (void)openDocument:(nullable id)sender;
+
+@end
+
+NS_ASSUME_NONNULL_END

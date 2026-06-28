@@ -17,71 +17,48 @@
 
 include(GNUInstallDirs)
 
-find_package(Qt6 6.11 REQUIRED COMPONENTS 
-    Core 
-    Quick 
-    QuickControls2 
-    Svg 
-    Multimedia
-)
-qt_standard_project_setup(REQUIRES 6.11)
-
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTORCC ON)
-
+# UI-facing wrapper around the capture library. Built separately so the test
+# suite can link it without the AppKit executable.
 add_library(loopmac_lib STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/audio_manager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/audio_manager.mm
     ${CMAKE_CURRENT_SOURCE_DIR}/include/audio_manager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/time_format.h
 )
 target_include_directories(loopmac_lib PUBLIC include)
-target_link_libraries(loopmac_lib PUBLIC capture PRIVATE Qt6::Core)
+target_link_libraries(loopmac_lib PUBLIC capture)
+target_compile_options(loopmac_lib PRIVATE -fobjc-arc)
 
-qt_add_qml_module(loopmac_lib
-    URI LoopMacUI
-    OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/LoopMacUI
-    QML_FILES
-        Main.qml
-        controls/PlaybackControl.qml
-        controls/AudioControl.qml
-        controls/PlaybackSeekControl.qml
-    RESOURCES
-        images/angle-double-small-left.svg
-        images/angle-double-small-right.svg
-        images/dot-circle.svg
-        images/folder-open.svg
-        images/pause-circle.svg
-        images/play-circle.svg
-        images/stop-circle.svg
-        images/volume-slash.svg
-        images/volume.svg
+add_executable(LoopMac MACOSX_BUNDLE
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.mm
+    ${CMAKE_CURRENT_SOURCE_DIR}/AppDelegate.mm
+    ${CMAKE_CURRENT_SOURCE_DIR}/MainWindowController.mm
+    ${CMAKE_CURRENT_SOURCE_DIR}/PlaybackEngine.mm
+    ${CMAKE_CURRENT_SOURCE_DIR}/PlaybackControlView.mm
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/AppDelegate.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/MainWindowController.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/PlaybackEngine.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/PlaybackControlView.h
 )
-
-qt_add_executable(LoopMac 
-    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-)
-set_target_properties(LoopMac PROPERTIES 
-    MACOSX_BUNDLE TRUE
-    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
+target_include_directories(LoopMac PRIVATE include)
+target_compile_options(LoopMac PRIVATE -fobjc-arc)
+target_compile_definitions(LoopMac PRIVATE
+    APP_VERSION="${PROJECT_VERSION}"
 )
 target_link_libraries(LoopMac PRIVATE
     loopmac_lib
-    loopmac_libplugin
-    Qt6::Quick 
-    Qt6::QuickControls2
-    Qt6::Svg
-    Qt6::Multimedia
-)
-target_compile_definitions(LoopMac PRIVATE 
-    APP_VERSION="${PROJECT_VERSION}"
+    "-framework AppKit"
+    "-framework AVFoundation"
+    "-framework UniformTypeIdentifiers"
 )
 
-qt_generate_deploy_qml_app_script(
-    TARGET LoopMac
-    OUTPUT_SCRIPT deploy_script
-    NO_UNSUPPORTED_PLATFORM_ERROR
-    DEPLOY_USER_QML_MODULES_ON_UNSUPPORTED_PLATFORM
+set_target_properties(LoopMac PROPERTIES
+    MACOSX_BUNDLE TRUE
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
+    MACOSX_BUNDLE_BUNDLE_NAME "LoopMac"
+    MACOSX_BUNDLE_GUI_IDENTIFIER "com.grahamstrickland.loopmac"
+    MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
 )
-install(SCRIPT ${deploy_script})
 
 install(TARGETS LoopMac
     BUNDLE DESTINATION .
