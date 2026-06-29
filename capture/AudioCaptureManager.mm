@@ -25,8 +25,14 @@
 
 // Constants for audio format
 static const Float64 kTargetSampleRate = 22050.0;
+static const UInt32 kTargetChannelCount = 1;
+static const UInt32 kBitsPerChannel = 32;
 static const UInt32 kPreferredBufferSize =
     4096; // Added preferred buffer size (samples)
+
+// Constants for device monitoring
+static const UInt32 kDeviceChangeScope = kAudioObjectPropertyScopeGlobal;
+static const UInt32 kDeviceChangeElement = kAudioObjectPropertyElementMain;
 
 @interface AudioCaptureManager () {
 }
@@ -54,8 +60,21 @@ static AudioCaptureManager *sharedInstance = nil;
 
     // Initialize audio properties
     _isCapturing = NO;
+    _audioQueue = dispatch_queue_create("audio-capture-manager-queue", DISPATCH_QUEUE_SERIAL);
     _aggregateDeviceID = kAudioDeviceUnknown;
     _deviceProcID = NULL;
+
+    // Set up target format
+    _targetFormat.mSampleRate = kTargetSampleRate;
+    _targetFormat.mFormatID = kAudioFormatLinearPCM;
+    _targetFormat.mFormatFlags =
+        kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked;
+    _targetFormat.mFramesPerPacket = 1;
+    _targetFormat.mChannelsPerFrame = kTargetChannelCount;
+    _targetFormat.mBitsPerChannel = kBitsPerChannel;
+    _targetFormat.mBytesPerPacket =
+        (_targetFormat.mBitsPerChannel / 8) * _targetFormat.mChannelsPerFrame;
+    _targetFormat.mBytesPerFrame = _targetFormat.mBytesPerPacket;
 
     if ([self checkTCCPermission:@"kTCCServiceAudioCapture"] == 0) {
       NSError *error = nil;
@@ -69,6 +88,7 @@ static AudioCaptureManager *sharedInstance = nil;
                 std::string([error.localizedDescription UTF8String]),
             "error");
       }
+      [self startDeviceMonitoring];
     }
   }
 
@@ -77,6 +97,8 @@ static AudioCaptureManager *sharedInstance = nil;
 
 - (void)dealloc {
   Log("Deallocating");
+  [self stopDeviceMonitoring];
+  [self destroyAudioResources];
   if (_tccHandle) {
     Log("Closing TCC framework handle");
     dlclose(_tccHandle);
@@ -719,6 +741,148 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   return YES;
 }
 
+#pragma mark - Device Monitoring
+
+- (void)startDeviceMonitoring {
+  Log("Starting device monitoring");
+
+  // Set up device change listener for both input and output devices
+  AudioObjectPropertyAddress propertyAddress = {
+      .mSelector = kAudioHardwarePropertyDefaultInputDevice,
+      .mScope = kDeviceChangeScope,
+      .mElement = kDeviceChangeElement};
+
+  // Create block for device changes
+  AudioCaptureManager *blockSelf = self;
+  _deviceChangeListener = ^(UInt32 inNumberAddresses,
+                            const AudioObjectPropertyAddress *inAddresses) {
+    [blockSelf handleDeviceChange];
+  };
+
+  // Add listener for input device changes
+  OSStatus status = AudioObjectAddPropertyListenerBlock(
+      kAudioObjectSystemObject, &propertyAddress, self->_audioQueue,
+      self->_deviceChangeListener);
+
+  if (status != noErr) {
+    Log("Failed to add input device change listener", "error");
+    return;
+  }
+
+  // Add listener for output device changes
+  propertyAddress.mSelector = kAudioHardwarePropertyDefaultOutputDevice;
+  status = AudioObjectAddPropertyListenerBlock(
+      kAudioObjectSystemObject, &propertyAddress, self->_audioQueue,
+      self->_deviceChangeListener);
+
+  if (status != noErr) {
+    Log("Failed to add output device change listener", "error");
+    return;
+  }
+
+  Log("Device monitoring started successfully");
+}
+
+- (void)handleDeviceChange {
+  Log("Handling device change");
+
+  // If we're currently capturing, we need to recreate the audio setup
+  BOOL wasCapturing = _isCapturing;
+  if (wasCapturing) {
+    NSError *error = nil;
+    [self stopCapture:&error];
+    if (error) {
+      Log(std::string("Failed to stop capture after device change: ") +
+              std::string([error.localizedDescription UTF8String]),
+          "error");
+      return;
+    }
+  }
+
+  // Destroy and recreate audio resources
+  [self destroyAudioResources];
+
+  NSError *error = nil;
+  if (![self setupAudioTapIfNeeded:&error]) {
+    Log(std::string("Failed to setup audio tap after device change: ") +
+            std::string([error.localizedDescription UTF8String]),
+        "error");
+    return;
+  }
+
+  if (![self setupAggregateDeviceIfNeeded:&error]) {
+    Log(std::string("Failed to setup aggregate device after device change: ") +
+            std::string([error.localizedDescription UTF8String]),
+        "error");
+    return;
+  }
+
+  // If we were capturing before, restart capture
+  if (wasCapturing) {
+    NSError *error = nil;
+    [self startCapture:&error];
+    if (error) {
+      Log(std::string("Failed to start capture after device change: ") +
+              std::string([error.localizedDescription UTF8String]),
+          "error");
+      return;
+    }
+  }
+
+  Log("Device change handled successfully");
+}
+
+- (void)stopDeviceMonitoring {
+  Log("Stopping device monitoring");
+
+  if (_deviceChangeListener) {
+    // REmove input device listener
+    AudioObjectPropertyAddress propertyAddress = {
+        .mSelector = kAudioHardwarePropertyDefaultInputDevice,
+        .mScope = kDeviceChangeScope,
+        .mElement = kDeviceChangeElement};
+
+    AudioObjectRemovePropertyListenerBlock(kAudioObjectSystemObject,
+                                           &propertyAddress, _audioQueue,
+                                           _deviceChangeListener);
+
+    // Remove output device listener
+    propertyAddress.mSelector = kAudioHardwarePropertyDefaultOutputDevice;
+    AudioObjectRemovePropertyListenerBlock(kAudioObjectSystemObject,
+                                           &propertyAddress, _audioQueue,
+                                           _deviceChangeListener);
+
+    _deviceChangeListener = nil;
+  }
+
+  Log("Device monitoring stopped");
+}
+
+- (void)destroyAudioResources {
+  Log("Destroying audio resources");
+
+  if (_deviceProcID && _aggregateDeviceID != kAudioDeviceUnknown) {
+    AudioDeviceDestroyIOProcID(_aggregateDeviceID, _deviceProcID);
+    _deviceProcID = NULL;
+  }
+
+  if (_tapObjectID != 0) {
+    AudioHardwareDestroyProcessTap(_tapObjectID);
+    _tapObjectID = 0;
+  }
+
+  if (_tapUID) {
+    _tapUID = NULL;
+  }
+
+  if (_aggregateDeviceID != kAudioDeviceUnknown) {
+    AudioHardwareDestroyAggregateDevice(_aggregateDeviceID);
+    _aggregateDeviceID = kAudioDeviceUnknown;
+  }
+
+  Log("Audio resources destroyed");
+}
+
 #pragma mark - TCC Framework Methods
 
 - (void)initializeTCCFramework {
@@ -829,4 +993,5 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
                     completion(status);
                   }];
 }
+
 @end

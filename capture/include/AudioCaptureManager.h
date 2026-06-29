@@ -58,10 +58,15 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
   // Audio properties
   AudioDeviceID _aggregateDeviceID;
   AudioDeviceIOProcID _deviceProcID;
+  AudioStreamBasicDescription _targetFormat;
   AudioStreamBasicDescription _sourceFormat;
+  AudioObjectPropertyListenerBlock _deviceChangeListener;
 
   // State
   BOOL _isCapturing;
+
+  // Queue for audio operations
+  dispatch_queue_t _audioQueue;
 
   // Callback for audio data
   void (^_audioDataCallback)(NSData *audioData);
@@ -122,6 +127,30 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
  * @return `YES` if setup was successful or already done, `NO` otherwise.
  */
 - (BOOL)setupAggregateDeviceIfNeeded:(NSError **)error;
+
+/**
+ * @brief Clean up and release audio resources.
+ * @note Called internally udring deallocation or when stopping capture.
+ */
+- (void)destroyAudioResources;
+
+/**
+ * @brief Start monitoring for audio device changes.
+ * @note Sets up listeners for device configuration changes.
+ */
+- (void)startDeviceMonitoring;
+
+/**
+ * @brief Stop monitoring for audio device changes.
+ * @note Removes device configuration change listeners.
+ */
+- (void)stopDeviceMonitoring;
+
+/**
+ * @brief Handle changes in audio device configuration.
+ * @not Called automatically when device changes are detected.
+ */
+- (void)handleDeviceChange;
 
 /**
  * @name Permission Methods
