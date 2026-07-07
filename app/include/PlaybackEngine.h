@@ -40,11 +40,13 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic) float volume;
 @property(nonatomic, getter=isMuted) BOOL muted;
 
-/// Loads `url` and begins playback. Returns NO and populates `error` on failure.
 - (BOOL)openURL:(NSURL *)url error:(NSError *_Nullable *_Nullable)error;
+
+- (BOOL)clearMedia;
 
 - (void)play;
 - (void)pause;
+- (void)stop;
 - (void)togglePlayPause;
 
 /// Seeks to an absolute position (clamped to [0, duration]).

@@ -52,6 +52,11 @@ add_executable(playback_test playback/playbacktest.cpp)
 target_link_libraries(playback_test Catch2::Catch2WithMain playback)
 catch_discover_tests(playback_test)
 
+add_executable(playback_engine_test playback/playbackenginetest.mm)
+target_link_libraries(playback_engine_test Catch2::Catch2WithMain loopmac_lib)
+target_compile_options(playback_engine_test PRIVATE -fobjc-arc)
+catch_discover_tests(playback_engine_test)
+
 # App (native UI) tests
 add_executable(time_format_test app/time_format_test.cpp)
 target_link_libraries(time_format_test Catch2::Catch2WithMain loopmac_lib)

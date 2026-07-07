@@ -19,7 +19,8 @@
 
 #import <AVFoundation/AVFoundation.h>
 
-// Cadence at which position updates are pushed to the delegate while a clip is loaded.
+// Cadence at which position updates are pushed to the delegate while a clip is
+// loaded.
 static const NSTimeInterval kTickInterval = 0.05;
 
 @interface PlaybackEngine () <AVAudioPlayerDelegate>
@@ -28,7 +29,7 @@ static const NSTimeInterval kTickInterval = 0.05;
 @implementation PlaybackEngine {
   AVAudioPlayer *_player;
   NSTimer *_timer;
-  float _volume;  // desired volume, preserved across mute toggles
+  float _volume; // desired volume, preserved across mute toggles
   BOOL _muted;
 }
 
@@ -99,7 +100,7 @@ static const NSTimeInterval kTickInterval = 0.05;
 
 - (BOOL)openURL:(NSURL *)url error:(NSError *_Nullable *_Nullable)error {
   AVAudioPlayer *player = [[AVAudioPlayer alloc] initWithContentsOfURL:url
-                                                                error:error];
+                                                                 error:error];
   if (!player) {
     return NO;
   }
@@ -115,6 +116,19 @@ static const NSTimeInterval kTickInterval = 0.05;
   return YES;
 }
 
+- (BOOL)clearMedia {
+  if (!_player) {
+    return NO;
+  }
+
+  [_player stop];
+  _player.delegate = nil;
+  _player = nil;
+
+  [self.delegate playbackEngineDidUpdate:self];
+  return YES;
+}
+
 - (void)play {
   [_player play];
   [self.delegate playbackEngineDidUpdate:self];
@@ -122,6 +136,11 @@ static const NSTimeInterval kTickInterval = 0.05;
 
 - (void)pause {
   [_player pause];
+  [self.delegate playbackEngineDidUpdate:self];
+}
+
+- (void)stop {
+  [_player stop];
   [self.delegate playbackEngineDidUpdate:self];
 }
 

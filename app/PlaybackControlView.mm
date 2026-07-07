@@ -46,6 +46,10 @@
   NSImage *_pauseImage;
   NSImage *_volumeImage;
   NSImage *_mutedImage;
+  NSImage *_recordImage;
+  NSImage *_recordingImage;
+
+  BOOL _recording;
 }
 
 - (instancetype)initWithEngine:(PlaybackEngine *)engine {
@@ -57,6 +61,10 @@
     _pauseImage = [self symbol:@"pause.circle.fill" label:@"Pause"];
     _volumeImage = [self symbol:@"speaker.wave.2.fill" label:@"Mute"];
     _mutedImage = [self symbol:@"speaker.slash.fill" label:@"Unmute"];
+    _recordImage = [self symbol:@"record.circle" label:@"Record"];
+    _recordingImage = [self symbol:@"stop.circle.fill" label:@"Stop Recording"];
+
+    _recording = NO;
 
     [self buildSubviews];
     [self refresh];
@@ -66,15 +74,15 @@
 
 #pragma mark - View construction
 
-// Every transport button renders a fixed-size symbol inside an identically sized
-// box so the row stays uniform and toggling play/pause or mute (whose symbols
-// have different intrinsic widths) never shifts the layout.
+// Every transport button renders a fixed-size symbol inside an identically
+// sized box so the row stays uniform and toggling play/pause or mute (whose
+// symbols have different intrinsic widths) never shifts the layout.
 static const CGFloat kSymbolPointSize = 16.0;
 static const CGFloat kButtonSize = 30.0;
 
 - (NSImage *)symbol:(NSString *)name label:(NSString *)label {
   NSImage *image = [NSImage imageWithSystemSymbolName:name
-                            accessibilityDescription:label];
+                             accessibilityDescription:label];
   NSImageSymbolConfiguration *config = [NSImageSymbolConfiguration
       configurationWithPointSize:kSymbolPointSize
                           weight:NSFontWeightRegular];
@@ -126,19 +134,32 @@ static const CGFloat kButtonSize = 30.0;
   seekRow.orientation = NSUserInterfaceLayoutOrientationHorizontal;
   seekRow.spacing = 16;
   seekRow.alignment = NSLayoutAttributeCenterY;
-  [_seekSlider setContentHuggingPriority:NSLayoutPriorityDefaultLow
-                          forOrientation:NSLayoutConstraintOrientationHorizontal];
+  [_seekSlider
+      setContentHuggingPriority:NSLayoutPriorityDefaultLow
+                 forOrientation:NSLayoutConstraintOrientationHorizontal];
 
   // Transport row with leading (file/record), centered playback, and trailing
   // (volume) gravities.
-  _openButton = [self buttonWithSymbol:@"folder" label:@"Open" action:@selector(openDocument:)];
-  _recordButton = [self buttonWithSymbol:@"record.circle" label:@"Record" action:@selector(recordTapped:)];
+  _openButton = [self buttonWithSymbol:@"folder"
+                                 label:@"Open"
+                                action:@selector(openDocument:)];
+  _recordButton = [self buttonWithSymbol:@"record.circle"
+                                   label:@"Record"
+                                  action:@selector(recordTapped:)];
 
-  _back10Button = [self buttonWithSymbol:@"gobackward.10" label:@"Back 10s" action:@selector(skipBackTapped:)];
-  _playPauseButton = [self buttonWithSymbol:@"play.circle.fill" label:@"Play/Pause" action:@selector(playPauseTapped:)];
-  _forward10Button = [self buttonWithSymbol:@"goforward.10" label:@"Forward 10s" action:@selector(skipForwardTapped:)];
+  _back10Button = [self buttonWithSymbol:@"gobackward.10"
+                                   label:@"Back 10s"
+                                  action:@selector(skipBackTapped:)];
+  _playPauseButton = [self buttonWithSymbol:@"play.circle.fill"
+                                      label:@"Play/Pause"
+                                     action:@selector(playPauseTapped:)];
+  _forward10Button = [self buttonWithSymbol:@"goforward.10"
+                                      label:@"Forward 10s"
+                                     action:@selector(skipForwardTapped:)];
 
-  _muteButton = [self buttonWithSymbol:@"speaker.wave.2.fill" label:@"Mute" action:@selector(muteTapped:)];
+  _muteButton = [self buttonWithSymbol:@"speaker.wave.2.fill"
+                                 label:@"Mute"
+                                action:@selector(muteTapped:)];
 
   _volumeSlider = [NSSlider sliderWithValue:1.0
                                    minValue:0.0
@@ -160,7 +181,8 @@ static const CGFloat kButtonSize = 30.0;
   [transportRow addView:_muteButton inGravity:NSStackViewGravityTrailing];
   [transportRow addView:_volumeSlider inGravity:NSStackViewGravityTrailing];
 
-  NSStackView *column = [NSStackView stackViewWithViews:@[ seekRow, transportRow ]];
+  NSStackView *column =
+      [NSStackView stackViewWithViews:@[ seekRow, transportRow ]];
   column.orientation = NSUserInterfaceLayoutOrientationVertical;
   column.spacing = 16;
   column.edgeInsets = NSEdgeInsetsMake(20, 32, 28, 32);
@@ -222,31 +244,45 @@ static const CGFloat kButtonSize = 30.0;
 }
 
 - (void)recordTapped:(id)sender {
-  AudioManager::PermissionStatus status = _audioManager.getPermission();
-  if (status == AudioManager::Authorized) {
-    [self startRecording];
-    return;
-  }
-  if (status == AudioManager::Denied || status == AudioManager::Restricted) {
-    [self presentPermissionDenied];
-    return;
-  }
+  if (!_recording) {
+    AudioManager::PermissionStatus status = _audioManager.getPermission();
+    if (status == AudioManager::Authorized) {
+      [self startRecording];
+      return;
+    }
+    if (status == AudioManager::Denied || status == AudioManager::Restricted) {
+      [self presentPermissionDenied];
+      return;
+    }
 
-  // NotDetermined: returns immediately; result arrives on the main thread.
-  PlaybackControlView *blockSelf = self;
-  _audioManager.requestPermission(
-      [blockSelf](AudioManager::PermissionStatus result) {
-        if (result == AudioManager::Authorized) {
-          [blockSelf startRecording];
-        } else {
-          [blockSelf presentPermissionDenied];
-        }
-      });
+    // NotDetermined: returns immediately; result arrives on the main thread.
+    PlaybackControlView *blockSelf = self;
+    _audioManager.requestPermission(
+        [blockSelf](AudioManager::PermissionStatus result) {
+          if (result == AudioManager::Authorized) {
+            [blockSelf startRecording];
+          } else {
+            [blockSelf presentPermissionDenied];
+          }
+        });
+  } else {
+    [self stopRecording];
+    return;
+  }
 }
 
 - (void)startRecording {
-  // TODO: start recording (capture pipeline not yet wired up).
-  NSLog(@"Audio capture authorized — starting recording");
+  NSLog(@"Audio capture authorized - starting recording");
+  _recording = YES;
+
+  [_engine clearMedia];
+  [self refresh];
+}
+
+- (void)stopRecording {
+  NSLog(@"Stopping recording");
+  _recording = NO;
+  [self refresh];
 }
 
 #pragma mark - Alerts
@@ -259,8 +295,9 @@ static const CGFloat kButtonSize = 30.0;
 - (void)presentPermissionDenied {
   NSAlert *alert = [[NSAlert alloc] init];
   alert.messageText = @"System audio access is required to record";
-  alert.informativeText = @"Grant LoopMac access to record system audio in System "
-                          @"Settings ▸ Privacy & Security.";
+  alert.informativeText =
+      @"Grant LoopMac access to record system audio in System "
+      @"Settings ▸ Privacy & Security.";
   [alert addButtonWithTitle:@"OK"];
   [alert beginSheetModalForWindow:self.window completionHandler:nil];
 }
@@ -278,11 +315,18 @@ static const CGFloat kButtonSize = 30.0;
 
   _playPauseButton.image = _engine.isPlaying ? _pauseImage : _playImage;
   _muteButton.image = _engine.muted ? _mutedImage : _volumeImage;
+  _recordButton.image = _recording ? _recordingImage : _recordImage;
+  _recordButton.toolTip = _recording ? @"Stop Recording" : @"Record";
 
-  _seekSlider.enabled = hasMedia;
-  _back10Button.enabled = hasMedia;
-  _playPauseButton.enabled = hasMedia;
-  _forward10Button.enabled = hasMedia;
+  const BOOL playbackEnabled = hasMedia && !_recording;
+  _seekSlider.enabled = playbackEnabled;
+  _back10Button.enabled = playbackEnabled;
+  _playPauseButton.enabled = playbackEnabled;
+  _forward10Button.enabled = playbackEnabled;
+
+  _openButton.enabled = !_recording;
+  _muteButton.enabled = !_recording;
+  _volumeSlider.enabled = !_recording;
 
   if (duration > 0.0) {
     _seekSlider.doubleValue = position / duration;
@@ -292,9 +336,9 @@ static const CGFloat kButtonSize = 30.0;
 
   _currentTimeLabel.stringValue =
       @(loopmac::format_to_minutes((long long)(position * 1000.0)).c_str());
-  _remainingTimeLabel.stringValue = @(loopmac::format_to_minutes(
-                                          (long long)((duration - position) * 1000.0))
-                                          .c_str());
+  _remainingTimeLabel.stringValue =
+      @(loopmac::format_to_minutes((long long)((duration - position) * 1000.0))
+            .c_str());
 }
 
 @end
