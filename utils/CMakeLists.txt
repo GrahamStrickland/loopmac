@@ -15,30 +15,18 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-cmake_minimum_required(VERSION 3.24)
-project(LoopMac 
-    VERSION 0.0.6
-    SPDX_LICENSE "LGPL-3.0-or-later"
-    DESCRIPTION "Audio loopback and replay application for macOS"
-    HOMEPAGE_URL "https://github.com/GrahamStrickland/loopmac"
-    LANGUAGES CXX OBJCXX
-)
+add_library(utils STATIC ${CMAKE_CURRENT_SOURCE_DIR}/LogUtil.mm)
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+target_compile_features(utils PUBLIC cxx_std_23)
 
-include(CTest)
+target_include_directories(utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# Libraries
-add_subdirectory(utils)
-add_subdirectory(audio)
-add_subdirectory(capture)
-add_subdirectory(playback)
+find_library(FOUNDATION_LIBRARY Foundation REQUIRED)
+target_link_libraries(utils PUBLIC ${FOUNDATION_LIBRARY})
 
-# Executable
-add_subdirectory(app)
-
-# Tests
-if(BUILD_TESTING)
-    add_subdirectory(tests)
-endif()
+# os_log does not write to the terminal, so mirror log messages to stderr for
+# local development. Enabled automatically for Debug builds, or explicitly via
+# -DLOOPMAC_LOG_STDERR=ON.
+option(LOOPMAC_LOG_STDERR "Mirror LoopMac log output to stderr" OFF)
+target_compile_definitions(utils PRIVATE
+  $<$<OR:$<BOOL:${LOOPMAC_LOG_STDERR}>,$<CONFIG:Debug>>:LOOPMAC_LOG_STDERR>)

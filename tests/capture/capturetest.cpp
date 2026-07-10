@@ -22,7 +22,7 @@
 #include <memory>
 
 #include "capture.h"
-#include "utils.h"
+#include "test_utils.h"
 
 TEST_CASE("Audio capture manager constructor", "[audio_capture_manager]") {
   auto capture_manager = capture::audio_capture_manager{};
@@ -35,7 +35,7 @@ TEST_CASE("Audio capture manager get permission returns enum value",
 
   auto result = capture_manager.get_permission();
 
-  REQUIRE(utils::is_valid_permission_status(result));
+  REQUIRE(test_utils::is_valid_permission_status(result));
 }
 
 TEST_CASE("Audio capture manager request permission resolves via callback",
@@ -65,5 +65,5 @@ TEST_CASE("Audio capture manager request permission resolves via callback",
   }
 
   auto result = result_future.get();
-  REQUIRE(utils::is_request_result_status(result));
+  REQUIRE(test_utils::is_request_result_status(result));
 }

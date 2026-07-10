@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.6] - 2026-07-10
+
+### Changed
+
+- Moved logging to `util` library and added `os_log` routing for app logs alongside
+  ANSI terminal logging in debug builds.
+
 ## [0.0.5] - 2026-07-07
 
 ### Changed

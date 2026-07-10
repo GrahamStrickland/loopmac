@@ -19,7 +19,7 @@
 
 #include "audio_manager.h"
 #include "capture.h"
-#include "utils.h"
+#include "test_utils.h"
 
 // requestPermission() is intentionally not covered: it only resolves once the
 // user answers the interactive system prompt, which cannot be automated.
@@ -28,5 +28,5 @@ TEST_CASE("getPermission returns a valid status", "[audio_manager]") {
   auto result =
       static_cast<capture::permission_status>(audioManager.getPermission());
 
-  REQUIRE(utils::is_valid_permission_status(result));
+  REQUIRE(test_utils::is_valid_permission_status(result));
 }

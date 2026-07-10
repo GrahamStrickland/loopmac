@@ -27,7 +27,7 @@ add_library(loopmac_lib STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include/PlaybackEngine.h
 )
 target_include_directories(loopmac_lib PUBLIC include)
-target_link_libraries(loopmac_lib PUBLIC capture "-framework AVFoundation")
+target_link_libraries(loopmac_lib PUBLIC capture utils "-framework AVFoundation")
 target_compile_options(loopmac_lib PRIVATE -fobjc-arc)
 
 add_executable(LoopMac MACOSX_BUNDLE

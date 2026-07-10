@@ -29,19 +29,23 @@ FetchContent_MakeAvailable(Catch2)
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(Catch)
 
-add_library(utils STATIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/utils/utils.cpp
+add_library(test_utils STATIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_utils/test_utils.cpp
 )
-target_compile_features(utils PUBLIC cxx_std_23)
-target_include_directories(utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/utils/include)
-target_link_libraries(utils PUBLIC capture)
+target_compile_features(test_utils PUBLIC cxx_std_23)
+target_include_directories(test_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/test_utils/include)
+target_link_libraries(test_utils PUBLIC capture)
+
+add_executable(logutil_test utils/logutiltest.mm)
+target_link_libraries(logutil_test Catch2::Catch2WithMain utils)
+catch_discover_tests(logutil_test)
 
 add_executable(audio_test audio/audiotest.cpp)
 target_link_libraries(audio_test Catch2::Catch2WithMain audio)
 catch_discover_tests(audio_test)
 
 add_executable(capture_test capture/capturetest.cpp)
-target_link_libraries(capture_test Catch2::Catch2WithMain utils)
+target_link_libraries(capture_test Catch2::Catch2WithMain test_utils)
 catch_discover_tests(capture_test)
 
 add_executable(audio_capture_manager_test capture/audiocapturemanagertest.mm)
@@ -63,5 +67,5 @@ target_link_libraries(time_format_test Catch2::Catch2WithMain loopmac_lib)
 catch_discover_tests(time_format_test)
 
 add_executable(audio_manager_test app/audio_manager_test.cpp)
-target_link_libraries(audio_manager_test Catch2::Catch2WithMain loopmac_lib utils)
+target_link_libraries(audio_manager_test Catch2::Catch2WithMain loopmac_lib test_utils)
 catch_discover_tests(audio_manager_test)

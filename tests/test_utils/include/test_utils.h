@@ -15,15 +15,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-#import "LogUtil.h"
+#ifndef TEST_UTILS_H
+#define TEST_UTILS_H
 
-void Log(const std::string &message, const std::string &level) {
-  // Format the message
-  NSString *formattedMessage = [NSString
-      stringWithFormat:@"[capture] [%@] \033[38;5;141m%@\033[0m",
-                       [NSString stringWithUTF8String:level.c_str()],
-                       [NSString stringWithUTF8String:message.c_str()]];
+#include "capture.h"
 
-  // Log to system log, it also prints to console
-  NSLog(@"%@", formattedMessage);
-}
+namespace test_utils {
+bool is_valid_permission_status(capture::permission_status status);
+
+bool is_request_result_status(capture::permission_status status);
+} // namespace
+#endif // TEST_UTILS_H

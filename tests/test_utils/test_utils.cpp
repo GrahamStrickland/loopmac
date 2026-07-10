@@ -15,14 +15,23 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef UTILS_H
-#define UTILS_H
+#include "test_utils.h"
 
-#include "capture.h"
+namespace test_utils {
+bool is_valid_permission_status(capture::permission_status status) {
+  switch (status) {
+  case capture::permission_status::PermissionStatusNotDetermined:
+  case capture::permission_status::PermissionStatusDenied:
+  case capture::permission_status::PermissionStatusAuthorized:
+  case capture::permission_status::PermissionStatusRestricted:
+    return true;
+  default:
+    return false;
+  }
+}
 
-namespace utils {
-bool is_valid_permission_status(capture::permission_status status);
-
-bool is_request_result_status(capture::permission_status status);
+bool is_request_result_status(capture::permission_status status) {
+  return status == capture::permission_status::PermissionStatusDenied ||
+         status == capture::permission_status::PermissionStatusAuthorized;
+}
 } // namespace
-#endif // UTILS_H

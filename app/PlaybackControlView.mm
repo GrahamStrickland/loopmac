@@ -19,6 +19,7 @@
 
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
+#import "LogUtil.h"
 #import "PlaybackEngine.h"
 #import "audio_manager.h"
 #import "time_format.h"
@@ -272,7 +273,8 @@ static const CGFloat kButtonSize = 30.0;
 }
 
 - (void)startRecording {
-  NSLog(@"Audio capture authorized - starting recording");
+  LoopMacLog("PlaybackControlView",
+             "Audio capture authorized - starting recording");
   _recording = YES;
 
   [_engine clearMedia];
@@ -280,7 +282,7 @@ static const CGFloat kButtonSize = 30.0;
 }
 
 - (void)stopRecording {
-  NSLog(@"Stopping recording");
+  LoopMacLog("PlaybackControlView", "Stopping recording");
   _recording = NO;
   [self refresh];
 }
