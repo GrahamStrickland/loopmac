@@ -17,7 +17,7 @@
 
 #import <AppKit/AppKit.h>
 
-#import "AppDelegate.h"
+#import "appdelegate.h"
 
 int main(int argc, const char *argv[]) {
   @autoreleasepool {

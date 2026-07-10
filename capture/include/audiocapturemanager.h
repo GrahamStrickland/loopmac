@@ -16,7 +16,7 @@
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * @file AudioCaptureManager.h
+ * @file audiocapturemanager.h
  * @brief Core audio management and capture functionality for macOS.
  *
  * This class provides a high-level interface for capturing audio on macOS.

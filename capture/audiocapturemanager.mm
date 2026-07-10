@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-#import "AudioCaptureManager.h"
-#import "LogUtil.h"
+#import "audiocapturemanager.h"
+#import "logutil.h"
 #import <AudioToolbox/AudioToolbox.h>
 #import <CoreAudio/CoreAudio.h>
 

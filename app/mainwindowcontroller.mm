@@ -15,10 +15,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-#import "MainWindowController.h"
+#import "mainwindowcontroller.h"
 
-#import "PlaybackControlView.h"
-#import "PlaybackEngine.h"
+#import "playbackcontrolview.h"
+#import "playbackengine.h"
 
 @implementation MainWindowController {
   PlaybackEngine *_engine;

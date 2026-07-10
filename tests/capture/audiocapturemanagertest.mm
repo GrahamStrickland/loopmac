@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-#import "AudioCaptureManager.h"
+#import "audiocapturemanager.h"
 #import <Foundation/Foundation.h>
 
 #include <catch2/catch_test_macros.hpp>

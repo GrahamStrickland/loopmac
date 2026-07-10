@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-#import "AppDelegate.h"
+#import "appdelegate.h"
 
-#import "MainWindowController.h"
+#import "mainwindowcontroller.h"
 
 @implementation AppDelegate {
   MainWindowController *_windowController;

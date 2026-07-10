@@ -17,7 +17,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include "LogUtil.h"
+#include "logutil.h"
 
 // LoopMacLog only emits to the unified logging system, so there is no return
 // value to assert on. These smoke tests verify it accepts every os_log type and

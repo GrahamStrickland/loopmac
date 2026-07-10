@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-add_library(utils STATIC ${CMAKE_CURRENT_SOURCE_DIR}/LogUtil.mm)
+add_library(utils STATIC ${CMAKE_CURRENT_SOURCE_DIR}/logutil.mm)
 
 target_compile_features(utils PUBLIC cxx_std_23)
 

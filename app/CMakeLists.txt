@@ -21,10 +21,10 @@ include(GNUInstallDirs)
 # suite can link it without the AppKit executable.
 add_library(loopmac_lib STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/audio_manager.mm
-    ${CMAKE_CURRENT_SOURCE_DIR}/PlaybackEngine.mm
+    ${CMAKE_CURRENT_SOURCE_DIR}/playbackengine.mm
     ${CMAKE_CURRENT_SOURCE_DIR}/include/audio_manager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/time_format.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/PlaybackEngine.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/playbackengine.h
 )
 target_include_directories(loopmac_lib PUBLIC include)
 target_link_libraries(loopmac_lib PUBLIC capture utils "-framework AVFoundation")
@@ -32,12 +32,12 @@ target_compile_options(loopmac_lib PRIVATE -fobjc-arc)
 
 add_executable(LoopMac MACOSX_BUNDLE
     ${CMAKE_CURRENT_SOURCE_DIR}/main.mm
-    ${CMAKE_CURRENT_SOURCE_DIR}/AppDelegate.mm
-    ${CMAKE_CURRENT_SOURCE_DIR}/MainWindowController.mm
-    ${CMAKE_CURRENT_SOURCE_DIR}/PlaybackControlView.mm
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/AppDelegate.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/MainWindowController.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/PlaybackControlView.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/appdelegate.mm
+    ${CMAKE_CURRENT_SOURCE_DIR}/mainwindowcontroller.mm
+    ${CMAKE_CURRENT_SOURCE_DIR}/playbackcontrolview.mm
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/appdelegate.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mainwindowcontroller.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/playbackcontrolview.h
 )
 target_include_directories(LoopMac PRIVATE include)
 target_compile_options(LoopMac PRIVATE -fobjc-arc)

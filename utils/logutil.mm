@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-#import "LogUtil.h"
+#import "logutil.h"
 
 #import <mutex>
 #import <unordered_map>

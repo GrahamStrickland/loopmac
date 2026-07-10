@@ -19,7 +19,7 @@
 #include <memory>
 #include <thread>
 
-#import "AudioCaptureManager.h"
+#import "audiocapturemanager.h"
 #import <Foundation/Foundation.h>
 
 #include "capture.h"

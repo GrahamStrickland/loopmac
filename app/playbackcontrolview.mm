@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
-#import "PlaybackControlView.h"
+#import "playbackcontrolview.h"
 
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
-#import "LogUtil.h"
-#import "PlaybackEngine.h"
+#import "logutil.h"
+#import "playbackengine.h"
 #import "audio_manager.h"
 #import "time_format.h"
 

@@ -16,7 +16,7 @@
 // along with LoopMac. If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * @file LogUtil.h
+ * @file logutil.h
  * @brief Logging utility for LoopMac.
  *
  * Provides a simple logging interface that can be used throughout the native
