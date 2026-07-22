@@ -17,6 +17,7 @@
 
 #include <future>
 #include <memory>
+#include <string>
 #include <thread>
 
 #import "audiocapturemanager.h"
@@ -74,29 +75,40 @@ void audio_capture_manager::set_audio_data_callback(
   }];
 }
 
+namespace {
+// -localizedDescription and -UTF8String both return nil/NULL when the error is
+// nil, and constructing a std::string from NULL is undefined behaviour.
+std::string describe_error(NSError *error) {
+  const char *description = [[error localizedDescription] UTF8String];
+  return description ? std::string(description) : std::string("unknown error");
+}
+} // namespace
+
 bool audio_capture_manager::start_capture() {
-  NSError *error = nil;
+  @autoreleasepool {
+    NSError *error = nil;
 
-  bool succeeded = [pimpl->audioCaptureManager startCapture:&error];
+    bool succeeded = [pimpl->audioCaptureManager startCapture:&error];
 
-  if (!succeeded) {
-    NSString *errorString = [error localizedDescription];
-    LoopMacLog("Capture", std::string([errorString UTF8String]));
+    if (!succeeded) {
+      LoopMacLog("Capture", describe_error(error), OS_LOG_TYPE_ERROR);
+    }
+
+    return succeeded;
   }
-
-  return succeeded;
 }
 
 bool audio_capture_manager::stop_capture() {
-  NSError *error = nil;
+  @autoreleasepool {
+    NSError *error = nil;
 
-  bool succeeded = [pimpl->audioCaptureManager stopCapture:&error];
+    bool succeeded = [pimpl->audioCaptureManager stopCapture:&error];
 
-  if (!succeeded) {
-    NSString *errorString = [error localizedDescription];
-    LoopMacLog("Capture", std::string([errorString UTF8String]));
+    if (!succeeded) {
+      LoopMacLog("Capture", describe_error(error), OS_LOG_TYPE_ERROR);
+    }
+
+    return succeeded;
   }
-
-  return succeeded;
 }
 } // end namespace capture

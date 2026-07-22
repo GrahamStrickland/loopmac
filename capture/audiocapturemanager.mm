@@ -122,6 +122,16 @@ static AudioCaptureManager *sharedInstance = nil;
 
   auto permission = [self getPermission];
   if (permission != PermissionStatus::PermissionStatusAuthorized) {
+    if (error) {
+      *error = [NSError
+          errorWithDomain:@"audio-capture-manager"
+                     code:permission
+                 userInfo:@{
+                   NSLocalizedDescriptionKey :
+                       @"Audio capture permission has not been granted",
+                   @"ErrorLocation" : @"getPermission"
+                 }];
+    }
     return NO;
   }
 
