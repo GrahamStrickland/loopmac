@@ -18,11 +18,15 @@
 #import "audiocapturemanager.h"
 #import <Foundation/Foundation.h>
 
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <atomic>
 #include <chrono>
+#include <cmath>
 #include <future>
 #include <memory>
+#include <vector>
 
 namespace {
 bool is_valid_status(int status) {
@@ -34,7 +38,44 @@ bool is_valid_status(int status) {
   }
   return false;
 }
+
+// Incremented by CallbackSentinel's dealloc so tests can observe exactly when
+// the block that captured it is released.
+std::atomic<int> sentinel_dealloc_count{0};
 } // namespace
+
+// Resampling is an implementation detail of the capture path, so it is not
+// declared in the public header. Redeclaring it here lets the tests exercise
+// it directly; the implementation lives in audiocapturemanager.mm.
+@interface AudioCaptureManager (Testing)
+- (Float32 *)resampleBuffer:(Float32 *)inputBuffer
+                inputFrames:(UInt32)inputFrames
+               outputFrames:(UInt32 *)outputFrames;
+@end
+
+// Sentinel whose lifetime tracks the lifetime of the block that captures it.
+@interface CallbackSentinel : NSObject
+@end
+
+@implementation CallbackSentinel
+- (void)dealloc {
+  sentinel_dealloc_count.fetch_add(1);
+  [super dealloc];
+}
+@end
+
+// Exposes the source format so resampling can be tested without a live
+// aggregate device, which would otherwise be the only thing that sets it.
+@interface ResamplingTestManager : AudioCaptureManager
+- (void)setTestSourceSampleRate:(Float64)sampleRate;
+@end
+
+@implementation ResamplingTestManager
+- (void)setTestSourceSampleRate:(Float64)sampleRate {
+  _sourceFormat.mSampleRate = sampleRate;
+  _sourceFormat.mChannelsPerFrame = 1;
+}
+@end
 
 TEST_CASE("AudioCaptureManager sharedInstance returns the same singleton",
           "[AudioCaptureManager][sharedInstance]") {
@@ -151,5 +192,111 @@ TEST_CASE("AudioCaptureManager requestTCCPermission resolves via callback",
 
     (void)result_future.get();
     SUCCEED();
+  }
+}
+
+TEST_CASE("AudioCaptureManager releases the previous audio data callback",
+          "[AudioCaptureManager][setAudioDataCallback]") {
+  @autoreleasepool {
+    AudioCaptureManager *manager = [[AudioCaptureManager alloc] init];
+    sentinel_dealloc_count.store(0);
+
+    CallbackSentinel *sentinel = [[CallbackSentinel alloc] init];
+    [manager setAudioDataCallback:^(NSData *audioData) {
+      (void)audioData;
+      (void)sentinel;
+    }];
+
+    // Copying the block onto the heap retained the sentinel, so dropping our
+    // own reference leaves the installed callback as its only owner.
+    [sentinel release];
+    REQUIRE(sentinel_dealloc_count.load() == 0);
+
+    // Installing a second callback must release the first one rather than
+    // simply overwriting the pointer, which would leak it under manual
+    // retain/release.
+    [manager setAudioDataCallback:^(NSData *audioData) {
+      (void)audioData;
+    }];
+    REQUIRE(sentinel_dealloc_count.load() == 1);
+
+    [manager release];
+  }
+}
+
+TEST_CASE("AudioCaptureManager releases its audio data callback on dealloc",
+          "[AudioCaptureManager][setAudioDataCallback]") {
+  @autoreleasepool {
+    AudioCaptureManager *manager = [[AudioCaptureManager alloc] init];
+    sentinel_dealloc_count.store(0);
+
+    CallbackSentinel *sentinel = [[CallbackSentinel alloc] init];
+    [manager setAudioDataCallback:^(NSData *audioData) {
+      (void)audioData;
+      (void)sentinel;
+    }];
+    [sentinel release];
+    REQUIRE(sentinel_dealloc_count.load() == 0);
+
+    [manager release];
+    REQUIRE(sentinel_dealloc_count.load() == 1);
+  }
+}
+
+TEST_CASE("AudioCaptureManager resampleBuffer fills exactly the frames it "
+          "reports",
+          "[AudioCaptureManager][resampleBuffer]") {
+  @autoreleasepool {
+    ResamplingTestManager *manager = [[ResamplingTestManager alloc] init];
+    [manager setTestSourceSampleRate:44100.0];
+
+    const UInt32 inputFrames = 1024;
+    auto input = std::vector<Float32>(inputFrames, 0.5f);
+
+    UInt32 outputFrames = 0;
+    Float32 *output = [manager resampleBuffer:input.data()
+                                  inputFrames:inputFrames
+                                 outputFrames:&outputFrames];
+    REQUIRE(output != NULL);
+
+    // 44100 Hz down to the 22050 Hz target halves the frame count. The buffer
+    // is allocated with exactly this many elements, so writing index
+    // outputFrames would run past the end of the allocation.
+    REQUIRE(outputFrames == inputFrames / 2);
+
+    for (UInt32 i = 0; i < outputFrames; ++i) {
+      REQUIRE(std::isfinite(output[i]));
+    }
+
+    // The sinc weights are normalised by their own sum, so a constant input
+    // resamples to the same constant.
+    for (UInt32 i = 0; i < outputFrames; ++i) {
+      REQUIRE(output[i] == Catch::Approx(0.5f).margin(0.001));
+    }
+
+    free(output);
+    [manager release];
+  }
+}
+
+TEST_CASE("AudioCaptureManager resampleBuffer rejects input too short to "
+          "resample",
+          "[AudioCaptureManager][resampleBuffer]") {
+  @autoreleasepool {
+    ResamplingTestManager *manager = [[ResamplingTestManager alloc] init];
+    [manager setTestSourceSampleRate:44100.0];
+
+    // One input frame downsamples to zero output frames, which cannot be
+    // allocated or filled.
+    auto input = std::vector<Float32>(1, 0.5f);
+
+    UInt32 outputFrames = 0;
+    Float32 *output = [manager resampleBuffer:input.data()
+                                  inputFrames:1
+                                 outputFrames:&outputFrames];
+    REQUIRE(output == NULL);
+    REQUIRE(outputFrames == 0);
+
+    [manager release];
   }
 }

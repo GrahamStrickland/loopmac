@@ -49,6 +49,10 @@ public:
   // never blocked and callers may touch views directly from the callback.
   void requestPermission(std::function<void(PermissionStatus)> callback);
 
+  bool startCapture();
+
+  bool stopCapture();
+
 private:
   capture::audio_capture_manager captureManager;
 };

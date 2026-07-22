@@ -39,3 +39,11 @@ void AudioManager::requestPermission(
         });
       });
 }
+
+bool AudioManager::startCapture() {
+  return captureManager.start_capture();
+}
+
+bool AudioManager::stopCapture() {
+  return captureManager.stop_capture();
+}

@@ -19,9 +19,9 @@
 
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
+#import "audio_manager.h"
 #import "logutil.h"
 #import "playbackengine.h"
-#import "audio_manager.h"
 #import "time_format.h"
 
 @interface PlaybackControlView () <PlaybackEngineDelegate>
@@ -273,17 +273,21 @@ static const CGFloat kButtonSize = 30.0;
 }
 
 - (void)startRecording {
-  LoopMacLog("PlaybackControlView",
-             "Audio capture authorized - starting recording");
-  _recording = YES;
+  if (_audioManager.startCapture()) {
+    LoopMacLog("PlaybackControlView",
+               "Audio capture authorized - starting recording");
+    _recording = YES;
 
-  [_engine clearMedia];
+    [_engine clearMedia];
+  }
   [self refresh];
 }
 
 - (void)stopRecording {
-  LoopMacLog("PlaybackControlView", "Stopping recording");
-  _recording = NO;
+  if (_audioManager.stopCapture()) {
+    LoopMacLog("PlaybackControlView", "Stopping recording");
+    _recording = NO;
+  }
   [self refresh];
 }
 

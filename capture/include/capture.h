@@ -18,6 +18,7 @@
 #ifndef CAPTURE_H
 #define CAPTURE_H
 
+#include <cstddef>
 #include <functional>
 #include <future>
 
@@ -77,6 +78,41 @@ public:
    * to the appropriate thread.
    */
   void request_permission(std::function<void(permission_status)> callback);
+
+  /**
+   * @brief Callback invoked with each block of captured PCM audio.
+   * @param samples Pointer to `frame_count` packed 32-bit float samples, mono,
+   * 22050 Hz, normalized to [-1, 1].
+   * @param frame_count Number of samples in @p samples.
+   *
+   * The buffer is only valid for the duration of the call; copy anything that
+   * must outlive it.
+   */
+  using audio_data_callback =
+      std::function<void(const float *samples, std::size_t frame_count)>;
+
+  /**
+   * @brief Install the callback that receives captured PCM data.
+   * @param callback Invoked for each captured block, or an empty
+   * `std::function` to remove the current callback.
+   *
+   * Must be called before `start_capture()` to receive the first blocks. The
+   * callback runs on the main dispatch queue, not on the realtime audio thread.
+   */
+  void set_audio_data_callback(audio_data_callback callback);
+
+  /**
+   * @brief Start capturing audio from the system.
+   * @return `true` if capture started successfully, `false` otherwise.
+   * @note Requires proper permissions and device setup before starting.
+   */
+  bool start_capture();
+
+  /**
+   * @brief Stop the current audio capture session.
+   * @return `true` if capture stopped successfully, `false` otherwise.
+   */
+  bool stop_capture();
 
 private:
   struct impl;
