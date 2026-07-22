@@ -27,6 +27,19 @@ project(LoopMac
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(LOOPMAC_ENABLE_ASAN "Build with AddressSanitizer instrumentation" OFF)
+
+if(LOOPMAC_ENABLE_ASAN)
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+        message(FATAL_ERROR
+            "LOOPMAC_ENABLE_ASAN requires Clang or GCC, but the compiler is "
+            "${CMAKE_CXX_COMPILER_ID}.")
+    endif()
+    message(STATUS "AddressSanitizer instrumentation enabled")
+    add_compile_options(-fsanitize=address -fno-omit-frame-pointer -g)
+    add_link_options(-fsanitize=address)
+endif()
+
 include(CTest)
 
 # Libraries
