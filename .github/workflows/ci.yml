@@ -25,3 +25,25 @@ jobs:
     - name: Test
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+
+  sanitizers:
+    name: AddressSanitizer
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Configure CMake
+      run: >
+        cmake -B ${{github.workspace}}/build-asan
+        -DCMAKE_BUILD_TYPE=Debug
+        -DLOOPMAC_ENABLE_ASAN=ON
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build-asan
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build-asan
+      env:
+        ASAN_OPTIONS: detect_leaks=0:abort_on_error=1
+      run: ctest --output-on-failure
