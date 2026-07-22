@@ -102,6 +102,8 @@ static AudioCaptureManager *sharedInstance = nil;
   LoopMacLog("AudioCaptureManager", "Deallocating");
   [self stopDeviceMonitoring];
   [self destroyAudioResources];
+  [_audioDataCallback release];
+  _audioDataCallback = nil;
   if (_tccHandle) {
     LoopMacLog("AudioCaptureManager", "Closing TCC framework handle");
     dlclose(_tccHandle);
@@ -230,7 +232,9 @@ static AudioCaptureManager *sharedInstance = nil;
 #pragma mark - Audio Data Callback
 
 - (void)setAudioDataCallback:(void (^)(NSData *audioData))callback {
+  void (^previousCallback)(NSData *) = _audioDataCallback;
   _audioDataCallback = [callback copy];
+  [previousCallback release];
 }
 
 static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
@@ -409,7 +413,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   const UInt32 halfWindow = windowSize / 2;
   const float M_2PI = 2.0f * M_PI;
 
-  for (UInt32 newIndex = 0; newIndex <= newFrameLength; newIndex++) {
+  for (UInt32 newIndex = 0; newIndex < newFrameLength; newIndex++) {
     float position = newIndex * ratio;
     int32_t centerIndex = (int32_t)floorf(position);
     float fracOffset = position - centerIndex;
@@ -792,12 +796,12 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
       .mScope = kDeviceChangeScope,
       .mElement = kDeviceChangeElement};
 
-  // Create block for device changes
-  AudioCaptureManager *blockSelf = self;
-  _deviceChangeListener = ^(UInt32 inNumberAddresses,
-                            const AudioObjectPropertyAddress *inAddresses) {
+  // Create block for device changes.
+  __block AudioCaptureManager *blockSelf = self;
+  _deviceChangeListener = [^(UInt32 inNumberAddresses,
+                             const AudioObjectPropertyAddress *inAddresses) {
     [blockSelf handleDeviceChange];
-  };
+  } copy];
 
   // Add listener for input device changes
   OSStatus status = AudioObjectAddPropertyListenerBlock(
@@ -900,6 +904,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
                                            &propertyAddress, _audioQueue,
                                            _deviceChangeListener);
 
+    [_deviceChangeListener release];
     _deviceChangeListener = nil;
   }
 
