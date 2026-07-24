@@ -57,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced bundled SVG icons with native SF Symbols
 - Rewrote `AudioManager` as a plain Objective-C++ wrapper (no `QObject`),
   marshalling the permission callback to the main queue via Grand Central Dispatch
-- Dropped all Qt6 dependencies from the build; `LoopMac` now links AppKit,
+- Dropped all Qt6 dependencies from the build; `Scribe` now links AppKit,
   AVFoundation, and UniformTypeIdentifiers directly
 
 ### Removed
@@ -90,8 +90,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Application/project name from "apploopmac" to "LoopMac"
-- QML module to `LoopMacUI` in loopmac_lib for QML testing
+- Application/project name from "appscribe" to "Scribe"
+- QML module to `ScribeUI` in scribe_lib for QML testing
 - Millisecond formatting to M:SS:mmm in `PlaybackSeekControl`
 
 ## [0.0.1] - 2026-05-17

@@ -3,7 +3,7 @@
 #import <mutex>
 #import <unordered_map>
 
-#ifdef LOOPMAC_LOG_STDERR
+#ifdef scribe_LOG_STDERR
 #import <cstdio>
 #import <unistd.h>
 
@@ -29,7 +29,7 @@ StderrStyle StyleForType(os_log_type_t type) {
   }
 }
 } // namespace
-#endif // LOOPMAC_LOG_STDERR
+#endif // scribe_LOG_STDERR
 
 namespace {
 // Returns a process-lifetime os_log object for the given component, creating it
@@ -44,19 +44,19 @@ os_log_t LogForComponent(const std::string &component) {
   auto it = logs.find(component);
   if (it == logs.end()) {
     it =
-        logs.emplace(component, os_log_create("com.loopmac", component.c_str()))
+        logs.emplace(component, os_log_create("com.scribe", component.c_str()))
             .first;
   }
   return it->second;
 }
 } // namespace
 
-void LoopMacLog(const std::string &component, const std::string &message,
+void ScribeLog(const std::string &component, const std::string &message,
                 os_log_type_t type) {
   os_log_with_type(LogForComponent(component), type, "%{public}s",
                    message.c_str());
 
-#ifdef LOOPMAC_LOG_STDERR
+#ifdef scribe_LOG_STDERR
   // Debug builds also mirror to stderr, since os_log does not write to the
   // terminal. ANSI colors are only emitted when stderr is an interactive
   // terminal, so redirected logs stay free of escape codes.

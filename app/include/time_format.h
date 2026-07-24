@@ -4,7 +4,7 @@
 #include <cstdio>
 #include <string>
 
-namespace loopmac {
+namespace scribe {
 
 /**
  * @brief Format a duration in milliseconds as "M:SS.mmm".
@@ -29,6 +29,6 @@ inline std::string format_to_minutes(long long milliseconds) {
   return std::string(buffer);
 }
 
-} // namespace loopmac
+} // namespace scribe
 
 #endif // TIME_FORMAT_H

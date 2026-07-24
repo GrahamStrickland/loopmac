@@ -41,7 +41,7 @@ NSURL *write_temp_silence_wav(double seconds) {
   [wav increaseLengthBy:data_bytes];  // zero-filled samples == silence
 
   NSURL *url = [[NSURL fileURLWithPath:NSTemporaryDirectory()]
-      URLByAppendingPathComponent:@"loopmac_playbackengine_test.wav"];
+      URLByAppendingPathComponent:@"scribe_playbackengine_test.wav"];
   return [wav writeToURL:url atomically:YES] ? url : nil;
 }
 

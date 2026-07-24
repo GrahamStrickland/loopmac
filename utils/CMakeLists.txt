@@ -9,7 +9,7 @@ target_link_libraries(utils PUBLIC ${FOUNDATION_LIBRARY})
 
 # os_log does not write to the terminal, so mirror log messages to stderr for
 # local development. Enabled automatically for Debug builds, or explicitly via
-# -DLOOPMAC_LOG_STDERR=ON.
-option(LOOPMAC_LOG_STDERR "Mirror LoopMac log output to stderr" OFF)
+# -Dscribe_LOG_STDERR=ON.
+option(scribe_LOG_STDERR "Mirror Scribe log output to stderr" OFF)
 target_compile_definitions(utils PRIVATE
-  $<$<OR:$<BOOL:${LOOPMAC_LOG_STDERR}>,$<CONFIG:Debug>>:LOOPMAC_LOG_STDERR>)
+  $<$<OR:$<BOOL:${scribe_LOG_STDERR}>,$<CONFIG:Debug>>:scribe_LOG_STDERR>)

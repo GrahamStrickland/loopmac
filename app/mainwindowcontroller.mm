@@ -17,7 +17,7 @@
                                                 styleMask:style
                                                   backing:NSBackingStoreBuffered
                                                     defer:NO];
-  window.title = @"LoopMac";
+  window.title = @"Scribe";
   window.minSize = NSMakeSize(960, 540);
   [window center];
 

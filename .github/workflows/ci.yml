@@ -1,4 +1,4 @@
-name: LoopMac CI Workflow
+name: Scribe CI Workflow
 
 on:
   push:
@@ -38,7 +38,7 @@ jobs:
       run: >
         cmake -B ${{github.workspace}}/build-asan
         -DCMAKE_BUILD_TYPE=Debug
-        -DLOOPMAC_ENABLE_ASAN=ON
+        -DSCRIBE_ENABLE_ASAN=ON
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build-asan

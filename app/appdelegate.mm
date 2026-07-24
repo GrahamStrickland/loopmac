@@ -20,7 +20,7 @@
 }
 
 - (void)buildMenuBar {
-  NSString *appName = @"LoopMac";
+  NSString *appName = @"Scribe";
   NSMenu *menuBar = [[NSMenu alloc] init];
 
   // Application menu.

@@ -1,20 +1,20 @@
 cmake_minimum_required(VERSION 3.24)
-project(LoopMac 
+project(Scribe 
     VERSION 0.0.9
     DESCRIPTION "Audio loopback and replay application for macOS"
-    HOMEPAGE_URL "https://github.com/GrahamStrickland/loopmac"
+    HOMEPAGE_URL "https://github.com/GrahamStrickland/scribe"
     LANGUAGES CXX OBJCXX
 )
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(LOOPMAC_ENABLE_ASAN "Build with AddressSanitizer instrumentation" OFF)
+option(SCRIBE_ENABLE_ASAN "Build with AddressSanitizer instrumentation" OFF)
 
-if(LOOPMAC_ENABLE_ASAN)
+if(SCRIBE_ENABLE_ASAN)
     if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         message(FATAL_ERROR
-            "LOOPMAC_ENABLE_ASAN requires Clang or GCC, but the compiler is "
+            "SCRIBE_ENABLE_ASAN requires Clang or GCC, but the compiler is "
             "${CMAKE_CXX_COMPILER_ID}.")
     endif()
     message(STATUS "AddressSanitizer instrumentation enabled")

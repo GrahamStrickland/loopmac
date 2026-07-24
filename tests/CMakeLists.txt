@@ -40,15 +40,15 @@ target_link_libraries(playback_test Catch2::Catch2WithMain playback)
 catch_discover_tests(playback_test)
 
 add_executable(playback_engine_test playback/playbackenginetest.mm)
-target_link_libraries(playback_engine_test Catch2::Catch2WithMain loopmac_lib)
+target_link_libraries(playback_engine_test Catch2::Catch2WithMain scribe_lib)
 target_compile_options(playback_engine_test PRIVATE -fobjc-arc)
 catch_discover_tests(playback_engine_test)
 
 # App (native UI) tests
 add_executable(time_format_test app/time_format_test.cpp)
-target_link_libraries(time_format_test Catch2::Catch2WithMain loopmac_lib)
+target_link_libraries(time_format_test Catch2::Catch2WithMain scribe_lib)
 catch_discover_tests(time_format_test)
 
 add_executable(audio_manager_test app/audio_manager_test.cpp)
-target_link_libraries(audio_manager_test Catch2::Catch2WithMain loopmac_lib test_utils)
+target_link_libraries(audio_manager_test Catch2::Catch2WithMain scribe_lib test_utils)
 catch_discover_tests(audio_manager_test)

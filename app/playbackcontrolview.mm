@@ -257,7 +257,7 @@ static const CGFloat kButtonSize = 30.0;
 
 - (void)startRecording {
   if (_audioManager.startCapture()) {
-    LoopMacLog("PlaybackControlView",
+    ScribeLog("PlaybackControlView",
                "Audio capture authorized - starting recording");
     _recording = YES;
 
@@ -268,7 +268,7 @@ static const CGFloat kButtonSize = 30.0;
 
 - (void)stopRecording {
   if (_audioManager.stopCapture()) {
-    LoopMacLog("PlaybackControlView", "Stopping recording");
+    ScribeLog("PlaybackControlView", "Stopping recording");
     _recording = NO;
   }
   [self refresh];
@@ -285,7 +285,7 @@ static const CGFloat kButtonSize = 30.0;
   NSAlert *alert = [[NSAlert alloc] init];
   alert.messageText = @"System audio access is required to record";
   alert.informativeText =
-      @"Grant LoopMac access to record system audio in System "
+      @"Grant Scribe access to record system audio in System "
       @"Settings ▸ Privacy & Security.";
   [alert addButtonWithTitle:@"OK"];
   [alert beginSheetModalForWindow:self.window completionHandler:nil];
@@ -324,9 +324,9 @@ static const CGFloat kButtonSize = 30.0;
   }
 
   _currentTimeLabel.stringValue =
-      @(loopmac::format_to_minutes((long long)(position * 1000.0)).c_str());
+      @(scribe::format_to_minutes((long long)(position * 1000.0)).c_str());
   _remainingTimeLabel.stringValue =
-      @(loopmac::format_to_minutes((long long)((duration - position) * 1000.0))
+      @(scribe::format_to_minutes((long long)((duration - position) * 1000.0))
             .c_str());
 }
 

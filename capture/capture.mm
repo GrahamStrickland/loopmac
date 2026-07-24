@@ -74,7 +74,7 @@ bool audio_capture_manager::start_capture() {
     bool succeeded = [pimpl->audioCaptureManager startCapture:&error];
 
     if (!succeeded) {
-      LoopMacLog("Capture", describe_error(error), OS_LOG_TYPE_ERROR);
+      ScribeLog("Capture", describe_error(error), OS_LOG_TYPE_ERROR);
     }
 
     return succeeded;
@@ -88,7 +88,7 @@ bool audio_capture_manager::stop_capture() {
     bool succeeded = [pimpl->audioCaptureManager stopCapture:&error];
 
     if (!succeeded) {
-      LoopMacLog("Capture", describe_error(error), OS_LOG_TYPE_ERROR);
+      ScribeLog("Capture", describe_error(error), OS_LOG_TYPE_ERROR);
     }
 
     return succeeded;

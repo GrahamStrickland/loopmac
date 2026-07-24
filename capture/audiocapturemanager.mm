@@ -30,7 +30,7 @@ static AudioCaptureManager *sharedInstance = nil;
 + (instancetype)sharedInstance {
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
-    LoopMacLog("AudioCaptureManager", "Creating singleton instance");
+    ScribeLog("AudioCaptureManager", "Creating singleton instance");
     sharedInstance = [[self alloc] init];
   });
   return sharedInstance;
@@ -63,13 +63,13 @@ static AudioCaptureManager *sharedInstance = nil;
     if ([self checkTCCPermission:@"kTCCServiceAudioCapture"] == 0) {
       NSError *error = nil;
       if (![self setupAudioTapIfNeeded:&error]) {
-        LoopMacLog("AudioCaptureManager",
+        ScribeLog("AudioCaptureManager",
                    std::string("Failed to setup audio tap: ") +
                        std::string([error.localizedDescription UTF8String]),
                    OS_LOG_TYPE_ERROR);
       }
       if (![self setupAggregateDeviceIfNeeded:&error]) {
-        LoopMacLog("AudioCaptureManager",
+        ScribeLog("AudioCaptureManager",
                    std::string("Failed to setup aggregate device: ") +
                        std::string([error.localizedDescription UTF8String]),
                    OS_LOG_TYPE_ERROR);
@@ -82,13 +82,13 @@ static AudioCaptureManager *sharedInstance = nil;
 }
 
 - (void)dealloc {
-  LoopMacLog("AudioCaptureManager", "Deallocating");
+  ScribeLog("AudioCaptureManager", "Deallocating");
   [self stopDeviceMonitoring];
   [self destroyAudioResources];
   [_audioDataCallback release];
   _audioDataCallback = nil;
   if (_tccHandle) {
-    LoopMacLog("AudioCaptureManager", "Closing TCC framework handle");
+    ScribeLog("AudioCaptureManager", "Closing TCC framework handle");
     dlclose(_tccHandle);
   }
   [super dealloc];
@@ -101,7 +101,7 @@ static AudioCaptureManager *sharedInstance = nil;
     return YES;
   }
 
-  LoopMacLog("AudioCaptureManager", "Starting audio capture");
+  ScribeLog("AudioCaptureManager", "Starting audio capture");
 
   auto permission = [self getPermission];
   if (permission != PermissionStatus::PermissionStatusAuthorized) {
@@ -128,9 +128,9 @@ static AudioCaptureManager *sharedInstance = nil;
   }
 
   // Log device IDs for debugging
-  LoopMacLog("AudioCaptureManager", "Using aggregate device ID: " +
+  ScribeLog("AudioCaptureManager", "Using aggregate device ID: " +
                                         std::to_string(_aggregateDeviceID));
-  LoopMacLog("AudioCaptureManager",
+  ScribeLog("AudioCaptureManager",
              "Tap object ID: " + std::to_string(_tapObjectID));
 
   // Set up IO proc for the aggregate device instead of tap
@@ -175,7 +175,7 @@ static AudioCaptureManager *sharedInstance = nil;
   }
 
   _isCapturing = YES;
-  LoopMacLog("AudioCaptureManager", "Audio capture started successfully");
+  ScribeLog("AudioCaptureManager", "Audio capture started successfully");
   return YES;
 }
 
@@ -184,7 +184,7 @@ static AudioCaptureManager *sharedInstance = nil;
     return YES;
   }
 
-  LoopMacLog("AudioCaptureManager", "Stopping audio capture");
+  ScribeLog("AudioCaptureManager", "Stopping audio capture");
 
   // Stop and destroy the IO proc on the aggregate device
   if (_deviceProcID != NULL) {
@@ -218,7 +218,7 @@ static AudioCaptureManager *sharedInstance = nil;
   }
 
   _isCapturing = NO;
-  LoopMacLog("AudioCaptureManager", "Audio capture stopped successfully");
+  ScribeLog("AudioCaptureManager", "Audio capture stopped successfully");
   return YES;
 }
 
@@ -251,7 +251,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   @autoreleasepool {
     // Validate input data
     if (!bufferList || bufferList->mNumberBuffers == 0) {
-      LoopMacLog("AudioCaptureManager", "Invalid buffer list received",
+      ScribeLog("AudioCaptureManager", "Invalid buffer list received",
                  OS_LOG_TYPE_ERROR);
       return;
     }
@@ -274,7 +274,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
 
     // Validate frame count
     if (numFrames == 0) {
-      LoopMacLog("AudioCaptureManager", "Invalid frame count",
+      ScribeLog("AudioCaptureManager", "Invalid frame count",
                  OS_LOG_TYPE_ERROR);
       return;
     }
@@ -312,7 +312,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
         });
       }
     } @catch (NSException *exception) {
-      LoopMacLog("AudioCaptureManager",
+      ScribeLog("AudioCaptureManager",
                  std::string("Exception in handleAudioInput: ") +
                      std::string([exception.description UTF8String]),
                  OS_LOG_TYPE_ERROR);
@@ -323,14 +323,14 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
 - (Float32 *)convertToMono:(const AudioBufferList *)bufferList
                  numFrames:(UInt32)numFrames {
   if (!bufferList || bufferList->mNumberBuffers == 0) {
-    LoopMacLog("AudioCaptureManager", "Invalid buffer list received",
+    ScribeLog("AudioCaptureManager", "Invalid buffer list received",
                OS_LOG_TYPE_ERROR);
     return NULL;
   }
 
   const AudioBuffer *buffer = &bufferList->mBuffers[0];
   if (!buffer->mData || buffer->mDataByteSize == 0) {
-    LoopMacLog("AudioCaptureManager", "Invalid buffer data received",
+    ScribeLog("AudioCaptureManager", "Invalid buffer data received",
                OS_LOG_TYPE_ERROR);
     return NULL;
   }
@@ -348,7 +348,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   // Allocate mono buffer
   Float32 *monoBuffer = (Float32 *)calloc(numFrames, sizeof(Float32));
   if (!monoBuffer) {
-    LoopMacLog("AudioCaptureManager",
+    ScribeLog("AudioCaptureManager",
                "Failed to allocate memory for mono buffer", OS_LOG_TYPE_ERROR);
     return NULL;
   }
@@ -387,7 +387,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   UInt32 newFrameLength = (UInt32)(inputFrames / ratio);
 
   if (newFrameLength == 0) {
-    LoopMacLog("AudioCaptureManager", "Invalid resampled frame length",
+    ScribeLog("AudioCaptureManager", "Invalid resampled frame length",
                OS_LOG_TYPE_ERROR);
     return NULL;
   }
@@ -395,7 +395,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   // Allocate buffer for resampled data
   Float32 *resampledBuffer = (Float32 *)calloc(newFrameLength, sizeof(Float32));
   if (!resampledBuffer) {
-    LoopMacLog("AudioCaptureManager",
+    ScribeLog("AudioCaptureManager",
                "Failed to allocate memory for resampled buffer",
                OS_LOG_TYPE_ERROR);
     return NULL;
@@ -448,7 +448,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return YES;
   }
 
-  LoopMacLog("AudioCaptureManager", "Setting up audio tap");
+  ScribeLog("AudioCaptureManager", "Setting up audio tap");
 
   CATapDescription *desc =
       [[CATapDescription alloc] initMonoGlobalTapButExcludeProcesses:@[]];
@@ -478,7 +478,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return NO;
   }
 
-  LoopMacLog("AudioCaptureManager", "Audio tap setup successfully");
+  ScribeLog("AudioCaptureManager", "Audio tap setup successfully");
   return YES;
 }
 
@@ -489,7 +489,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return YES;
   }
 
-  LoopMacLog("AudioCaptureManager", "Setting up aggregate device");
+  ScribeLog("AudioCaptureManager", "Setting up aggregate device");
 
   // Get default input and output devices
   AudioDeviceID inputDeviceID, outputDeviceID;
@@ -516,7 +516,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return NO;
   }
 
-  LoopMacLog("AudioCaptureManager",
+  ScribeLog("AudioCaptureManager",
              "Got input device ID: " + std::to_string(inputDeviceID));
 
   // Get default output device
@@ -537,7 +537,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return NO;
   }
 
-  LoopMacLog("AudioCaptureManager",
+  ScribeLog("AudioCaptureManager",
              "Got output device ID: " + std::to_string(outputDeviceID));
 
   // Get device UIDs
@@ -564,7 +564,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return NO;
   }
 
-  LoopMacLog("AudioCaptureManager",
+  ScribeLog("AudioCaptureManager",
              "Got input device UID: " +
                  std::string([(__bridge NSString *)inputUID UTF8String]));
 
@@ -584,7 +584,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return NO;
   }
 
-  LoopMacLog("AudioCaptureManager",
+  ScribeLog("AudioCaptureManager",
              "Got output device UID: " +
                  std::string([(__bridge NSString *)outputUID UTF8String]));
 
@@ -614,7 +614,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return NO;
   }
 
-  LoopMacLog("AudioCaptureManager",
+  ScribeLog("AudioCaptureManager",
              "Input device sample rate: " + std::to_string(inputSampleRate));
 
   status = AudioObjectGetPropertyData(outputDeviceID, &sampleRateAddress, 0,
@@ -634,14 +634,14 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return NO;
   }
 
-  LoopMacLog("AudioCaptureManager",
+  ScribeLog("AudioCaptureManager",
              "Output device sample rate: " + std::to_string(outputSampleRate));
 
   // Choose master device based on lower sample rate
   NSString *masterDeviceUID = inputSampleRate <= outputSampleRate
                                   ? (__bridge NSString *)inputUID
                                   : (__bridge NSString *)outputUID;
-  LoopMacLog("AudioCaptureManager",
+  ScribeLog("AudioCaptureManager",
              "Selected master device UID: " +
                  std::string([masterDeviceUID UTF8String]) +
                  " (based on sample rate comparison: " +
@@ -649,7 +649,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
                  " <= " + std::to_string(outputSampleRate) + ")");
 
   NSUUID *aggregateUID = [NSUUID UUID];
-  LoopMacLog("AudioCaptureManager",
+  ScribeLog("AudioCaptureManager",
              "Created aggregate device UUID: " +
                  std::string([[aggregateUID UUIDString] UTF8String]));
 
@@ -711,10 +711,10 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
                                       NULL, sizeof(UInt32), &bufferSize);
 
   if (status == noErr) {
-    LoopMacLog("AudioCaptureManager", "Set aggregate device buffer size to: " +
+    ScribeLog("AudioCaptureManager", "Set aggregate device buffer size to: " +
                                           std::to_string(bufferSize));
   } else {
-    LoopMacLog(
+    ScribeLog(
         "AudioCaptureManager",
         "Failed to set aggregate device buffer size, continuing with default",
         OS_LOG_TYPE_ERROR);
@@ -726,7 +726,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
                                       NULL, &dataSize, &aggregateSampleRate);
 
   if (status == noErr) {
-    LoopMacLog("AudioCaptureManager",
+    ScribeLog("AudioCaptureManager",
                "Created aggregate device with ID: " +
                    std::to_string(aggregateDeviceID) +
                    ", sample rate: " + std::to_string(aggregateSampleRate));
@@ -743,30 +743,30 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
                                         NULL, &formatSize, &format);
 
     if (status == noErr) {
-      LoopMacLog("AudioCaptureManager", "Aggregate device format details:");
-      LoopMacLog("AudioCaptureManager",
+      ScribeLog("AudioCaptureManager", "Aggregate device format details:");
+      ScribeLog("AudioCaptureManager",
                  "- Sample rate: " + std::to_string(format.mSampleRate));
-      LoopMacLog("AudioCaptureManager",
+      ScribeLog("AudioCaptureManager",
                  "- Format ID: " + std::to_string(format.mFormatID));
-      LoopMacLog("AudioCaptureManager",
+      ScribeLog("AudioCaptureManager",
                  "- Format flags: " + std::to_string(format.mFormatFlags));
-      LoopMacLog("AudioCaptureManager",
+      ScribeLog("AudioCaptureManager",
                  "- Bytes per packet: " +
                      std::to_string(format.mBytesPerPacket));
-      LoopMacLog("AudioCaptureManager",
+      ScribeLog("AudioCaptureManager",
                  "- Frames per packet: " +
                      std::to_string(format.mFramesPerPacket));
-      LoopMacLog("AudioCaptureManager",
+      ScribeLog("AudioCaptureManager",
                  "- Byes per frame: " + std::to_string(format.mBytesPerFrame));
-      LoopMacLog("AudioCaptureManager",
+      ScribeLog("AudioCaptureManager",
                  "- Channels per frame: " +
                      std::to_string(format.mChannelsPerFrame));
-      LoopMacLog("AudioCaptureManager",
+      ScribeLog("AudioCaptureManager",
                  "- Bits per channel: " +
                      std::to_string(format.mBitsPerChannel));
       bool isInterleaved =
           !(format.mFormatFlags & kAudioFormatFlagIsNonInterleaved);
-      LoopMacLog("AudioCaptureManager",
+      ScribeLog("AudioCaptureManager",
                  "- Is interleaved: " +
                      std::string(isInterleaved ? "yes" : "no"));
     }
@@ -774,14 +774,14 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   }
 
   _aggregateDeviceID = aggregateDeviceID;
-  LoopMacLog("AudioCaptureManager", "Aggregate device setup successfully");
+  ScribeLog("AudioCaptureManager", "Aggregate device setup successfully");
   return YES;
 }
 
 #pragma mark - Device Monitoring
 
 - (void)startDeviceMonitoring {
-  LoopMacLog("AudioCaptureManager", "Starting device monitoring");
+  ScribeLog("AudioCaptureManager", "Starting device monitoring");
 
   // Set up device change listener for both input and output devices
   AudioObjectPropertyAddress propertyAddress = {
@@ -802,7 +802,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
       self->_deviceChangeListener);
 
   if (status != noErr) {
-    LoopMacLog("AudioCaptureManager",
+    ScribeLog("AudioCaptureManager",
                "Failed to add input device change listener", OS_LOG_TYPE_ERROR);
     return;
   }
@@ -814,17 +814,17 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
       self->_deviceChangeListener);
 
   if (status != noErr) {
-    LoopMacLog("AudioCaptureManager",
+    ScribeLog("AudioCaptureManager",
                "Failed to add output device change listener",
                OS_LOG_TYPE_ERROR);
     return;
   }
 
-  LoopMacLog("AudioCaptureManager", "Device monitoring started successfully");
+  ScribeLog("AudioCaptureManager", "Device monitoring started successfully");
 }
 
 - (void)handleDeviceChange {
-  LoopMacLog("AudioCaptureManager", "Handling device change");
+  ScribeLog("AudioCaptureManager", "Handling device change");
 
   // If we're currently capturing, we need to recreate the audio setup
   BOOL wasCapturing = _isCapturing;
@@ -832,7 +832,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     NSError *error = nil;
     [self stopCapture:&error];
     if (error) {
-      LoopMacLog("AudioCaptureManager",
+      ScribeLog("AudioCaptureManager",
                  std::string("Failed to stop capture after device change: ") +
                      std::string([error.localizedDescription UTF8String]),
                  OS_LOG_TYPE_ERROR);
@@ -845,7 +845,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
 
   NSError *error = nil;
   if (![self setupAudioTapIfNeeded:&error]) {
-    LoopMacLog("AudioCaptureManager",
+    ScribeLog("AudioCaptureManager",
                std::string("Failed to setup audio tap after device change: ") +
                    std::string([error.localizedDescription UTF8String]),
                OS_LOG_TYPE_ERROR);
@@ -853,7 +853,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   }
 
   if (![self setupAggregateDeviceIfNeeded:&error]) {
-    LoopMacLog(
+    ScribeLog(
         "AudioCaptureManager",
         std::string("Failed to setup aggregate device after device change: ") +
             std::string([error.localizedDescription UTF8String]),
@@ -866,7 +866,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     NSError *error = nil;
     [self startCapture:&error];
     if (error) {
-      LoopMacLog("AudioCaptureManager",
+      ScribeLog("AudioCaptureManager",
                  std::string("Failed to start capture after device change: ") +
                      std::string([error.localizedDescription UTF8String]),
                  OS_LOG_TYPE_ERROR);
@@ -874,11 +874,11 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     }
   }
 
-  LoopMacLog("AudioCaptureManager", "Device change handled successfully");
+  ScribeLog("AudioCaptureManager", "Device change handled successfully");
 }
 
 - (void)stopDeviceMonitoring {
-  LoopMacLog("AudioCaptureManager", "Stopping device monitoring");
+  ScribeLog("AudioCaptureManager", "Stopping device monitoring");
 
   if (_deviceChangeListener) {
     // REmove input device listener
@@ -901,11 +901,11 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     _deviceChangeListener = nil;
   }
 
-  LoopMacLog("AudioCaptureManager", "Device monitoring stopped");
+  ScribeLog("AudioCaptureManager", "Device monitoring stopped");
 }
 
 - (void)destroyAudioResources {
-  LoopMacLog("AudioCaptureManager", "Destroying audio resources");
+  ScribeLog("AudioCaptureManager", "Destroying audio resources");
 
   if (_deviceProcID && _aggregateDeviceID != kAudioDeviceUnknown) {
     AudioDeviceDestroyIOProcID(_aggregateDeviceID, _deviceProcID);
@@ -926,26 +926,26 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     _aggregateDeviceID = kAudioDeviceUnknown;
   }
 
-  LoopMacLog("AudioCaptureManager", "Audio resources destroyed");
+  ScribeLog("AudioCaptureManager", "Audio resources destroyed");
 }
 
 #pragma mark - TCC Framework Methods
 
 - (void)initializeTCCFramework {
-  LoopMacLog("AudioCaptureManager", "Initializing TCC framework");
+  ScribeLog("AudioCaptureManager", "Initializing TCC framework");
 
   // Load TCC framework
   NSString *tccPath =
       @"/System/Library/PrivateFrameworks/TCC.framework/Versions/A/TCC";
   _tccHandle = dlopen([tccPath UTF8String], RTLD_NOW);
   if (!_tccHandle) {
-    LoopMacLog("AudioCaptureManager",
+    ScribeLog("AudioCaptureManager",
                std::string("Failed to load TCC framework: ") +
                    std::string(dlerror()),
                OS_LOG_TYPE_ERROR);
     return;
   }
-  LoopMacLog("AudioCaptureManager", "Successfully loaded TCC framework");
+  ScribeLog("AudioCaptureManager", "Successfully loaded TCC framework");
 
   // Get function pointers
   _preflightFunc =
@@ -953,7 +953,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   _requestFunc = (TCCRequestFuncType)dlsym(_tccHandle, "TCCAccessRequest");
 
   if (!_preflightFunc || !_requestFunc) {
-    LoopMacLog("AudioCaptureManager",
+    ScribeLog("AudioCaptureManager",
                std::string("Failed to get TCC function pointers: ") +
                    std::string(dlerror()),
                OS_LOG_TYPE_ERROR);
@@ -961,22 +961,22 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     _tccHandle = NULL;
     return;
   }
-  LoopMacLog("AudioCaptureManager", "Successfully initialized TCC functions");
+  ScribeLog("AudioCaptureManager", "Successfully initialized TCC functions");
 }
 
 - (int)checkTCCPermission:(NSString *)service {
-  LoopMacLog("AudioCaptureManager", "Checking TCC permission for service: " +
+  ScribeLog("AudioCaptureManager", "Checking TCC permission for service: " +
                                         std::string([service UTF8String]));
 
   if (!_preflightFunc) {
-    LoopMacLog("AudioCaptureManager", "TCC preflight function not available",
+    ScribeLog("AudioCaptureManager", "TCC preflight function not available",
                OS_LOG_TYPE_ERROR);
     return PermissionStatusNotDetermined; // Not determined
   }
 
   auto result = _preflightFunc((__bridge CFStringRef)service, NULL);
 
-  LoopMacLog("AudioCaptureManager",
+  ScribeLog("AudioCaptureManager",
              "TCC permission result: " + std::to_string(result));
 
   return result;
@@ -984,18 +984,18 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
 
 - (void)requestTCCPermission:(NSString *)service
                   completion:(void (^)(BOOL granted))completion {
-  LoopMacLog("AudioCaptureManager", "Requesting TCC permission for service: " +
+  ScribeLog("AudioCaptureManager", "Requesting TCC permission for service: " +
                                         std::string([service UTF8String]));
 
   if (!_requestFunc) {
-    LoopMacLog("AudioCaptureManager", "TCC request function not available",
+    ScribeLog("AudioCaptureManager", "TCC request function not available",
                OS_LOG_TYPE_ERROR);
     completion(NO);
     return;
   }
 
   _requestFunc((__bridge CFStringRef)service, NULL, ^(BOOL granted) {
-    LoopMacLog(
+    ScribeLog(
         "AudioCaptureManager",
         "TCC permission request for " + std::string([service UTF8String]) +
             " completed with result: " + (granted ? "granted" : "denied"));
@@ -1006,7 +1006,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
 #pragma mark - Permission Methods
 
 - (PermissionStatus)getPermission {
-  LoopMacLog("AudioCaptureManager", "Getting permission");
+  ScribeLog("AudioCaptureManager", "Getting permission");
 
   // Check audio recording permission using TCC
   auto audioResult =
@@ -1028,21 +1028,21 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     break;
   }
 
-  LoopMacLog("AudioCaptureManager",
+  ScribeLog("AudioCaptureManager",
              "System audio permission status: " + std::to_string(audioResult));
 
   return audioPermissionStatus;
 }
 
 - (void)requestPermission:(void (^)(PermissionStatus))completion {
-  LoopMacLog("AudioCaptureManager", "Requesting permission");
+  ScribeLog("AudioCaptureManager", "Requesting permission");
 
   [self requestTCCPermission:@"kTCCServiceAudioCapture"
                   completion:^(BOOL granted) {
                     auto status =
                         granted ? PermissionStatus::PermissionStatusAuthorized
                                 : PermissionStatus::PermissionStatusDenied;
-                    LoopMacLog("AudioCaptureManager",
+                    ScribeLog("AudioCaptureManager",
                                "System audio permission request completed with "
                                "status: " +
                                    std::to_string(status));
