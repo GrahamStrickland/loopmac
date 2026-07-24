@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "audio_manager.h"
+#include "audiomanager.h"
 #include "capture.h"
 #include "test_utils.h"
 

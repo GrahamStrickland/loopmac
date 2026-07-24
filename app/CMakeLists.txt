@@ -3,10 +3,9 @@ include(GNUInstallDirs)
 # UI-facing wrapper around the capture library. Built separately so the test
 # suite can link it without the AppKit executable.
 add_library(scribe_lib STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/audio_manager.mm
+    ${CMAKE_CURRENT_SOURCE_DIR}/audiomanager.mm
     ${CMAKE_CURRENT_SOURCE_DIR}/playbackengine.mm
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/audio_manager.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/time_format.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/audiomanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/playbackengine.h
 )
 target_include_directories(scribe_lib PUBLIC include)
