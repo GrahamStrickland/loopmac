@@ -15,7 +15,8 @@
   [NSApp activateIgnoringOtherApps:YES];
 }
 
-- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:
+    (NSApplication *)sender {
   return YES;
 }
 
@@ -60,7 +61,9 @@
   [windowMenu addItemWithTitle:@"Minimize"
                         action:@selector(performMiniaturize:)
                  keyEquivalent:@"m"];
-  [windowMenu addItemWithTitle:@"Zoom" action:@selector(performZoom:) keyEquivalent:@""];
+  [windowMenu addItemWithTitle:@"Zoom"
+                        action:@selector(performZoom:)
+                 keyEquivalent:@""];
   windowMenuItem.submenu = windowMenu;
   NSApp.windowsMenu = windowMenu;
 

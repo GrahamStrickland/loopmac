@@ -22,15 +22,19 @@ NSURL *write_temp_silence_wav(double seconds) {
   const uint32_t riff_size = 36 + data_bytes;
 
   NSMutableData *wav = [NSMutableData data];
-  void (^put32)(uint32_t) = ^(uint32_t v) { [wav appendBytes:&v length:4]; };
-  void (^put16)(uint16_t) = ^(uint16_t v) { [wav appendBytes:&v length:2]; };
+  void (^put32)(uint32_t) = ^(uint32_t v) {
+    [wav appendBytes:&v length:4];
+  };
+  void (^put16)(uint16_t) = ^(uint16_t v) {
+    [wav appendBytes:&v length:2];
+  };
 
   [wav appendBytes:"RIFF" length:4];
   put32(riff_size);
   [wav appendBytes:"WAVE" length:4];
   [wav appendBytes:"fmt " length:4];
-  put32(16);       // PCM fmt chunk size
-  put16(1);        // audio format: PCM
+  put32(16); // PCM fmt chunk size
+  put16(1);  // audio format: PCM
   put16(channels);
   put32(sample_rate);
   put32(byte_rate);
@@ -38,14 +42,14 @@ NSURL *write_temp_silence_wav(double seconds) {
   put16(bits_per_sample);
   [wav appendBytes:"data" length:4];
   put32(data_bytes);
-  [wav increaseLengthBy:data_bytes];  // zero-filled samples == silence
+  [wav increaseLengthBy:data_bytes]; // zero-filled samples == silence
 
   NSURL *url = [[NSURL fileURLWithPath:NSTemporaryDirectory()]
       URLByAppendingPathComponent:@"scribe_playbackengine_test.wav"];
   return [wav writeToURL:url atomically:YES] ? url : nil;
 }
 
-}  // namespace
+} // namespace
 
 TEST_CASE("PlaybackEngine clearMedia reports no media on a fresh engine",
           "[PlaybackEngine][clearMedia]") {

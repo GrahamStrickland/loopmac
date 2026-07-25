@@ -43,16 +43,15 @@ os_log_t LogForComponent(const std::string &component) {
   std::lock_guard<std::mutex> guard(mutex);
   auto it = logs.find(component);
   if (it == logs.end()) {
-    it =
-        logs.emplace(component, os_log_create("com.scribe", component.c_str()))
-            .first;
+    it = logs.emplace(component, os_log_create("com.scribe", component.c_str()))
+             .first;
   }
   return it->second;
 }
 } // namespace
 
 void ScribeLog(const std::string &component, const std::string &message,
-                os_log_type_t type) {
+               os_log_type_t type) {
   os_log_with_type(LogForComponent(component), type, "%{public}s",
                    message.c_str());
 

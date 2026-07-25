@@ -8,12 +8,9 @@
 TEST_CASE("ScribeLog emits without crashing for every type", "[logutil]") {
   REQUIRE_NOTHROW(ScribeLog("LogUtilTest", "default type message"));
   REQUIRE_NOTHROW(ScribeLog("LogUtilTest", "info message", OS_LOG_TYPE_INFO));
-  REQUIRE_NOTHROW(
-      ScribeLog("LogUtilTest", "debug message", OS_LOG_TYPE_DEBUG));
-  REQUIRE_NOTHROW(
-      ScribeLog("LogUtilTest", "error message", OS_LOG_TYPE_ERROR));
-  REQUIRE_NOTHROW(
-      ScribeLog("LogUtilTest", "fault message", OS_LOG_TYPE_FAULT));
+  REQUIRE_NOTHROW(ScribeLog("LogUtilTest", "debug message", OS_LOG_TYPE_DEBUG));
+  REQUIRE_NOTHROW(ScribeLog("LogUtilTest", "error message", OS_LOG_TYPE_ERROR));
+  REQUIRE_NOTHROW(ScribeLog("LogUtilTest", "fault message", OS_LOG_TYPE_FAULT));
 }
 
 TEST_CASE("ScribeLog reuses the log object for a repeated component",

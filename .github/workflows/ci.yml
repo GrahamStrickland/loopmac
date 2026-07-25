@@ -10,6 +10,22 @@ env:
   BUILD_TYPE: Release
 
 jobs:
+  format:
+    name: Format
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install clang-format
+      run: brew install clang-format
+
+    - name: Check formatting
+      run: >
+        find . \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" -o -name "*.mm" -o -name "*.m" \)
+        -not -path "./build/*" -not -path "./.git/*" -print0
+        | xargs -0 clang-format -style=file --dry-run -Werror
+
   build:
     name: Build&Test
     runs-on: macos-latest

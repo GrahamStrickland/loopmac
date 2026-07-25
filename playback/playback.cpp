@@ -4,5 +4,7 @@
 #include "playback.h"
 
 namespace playback {
-void playback() { std::cout << "Hello from the playback library." << std::endl; }
+void playback() {
+  std::cout << "Hello from the playback library." << std::endl;
+}
 } // end namespace playback

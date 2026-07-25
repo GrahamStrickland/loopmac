@@ -9,8 +9,8 @@ namespace scribe {
 /**
  * @brief Format a duration in milliseconds as "M:SS.mmm".
  *
- * The minutes component is unpadded while the seconds component is zero-padded 
- * to two integer digits with three decimal places (e.g. 65000 -> "1:05.000"). 
+ * The minutes component is unpadded while the seconds component is zero-padded
+ * to two integer digits with three decimal places (e.g. 65000 -> "1:05.000").
  * Negative inputs are clamped to zero.
  *
  * @param milliseconds Duration to format.

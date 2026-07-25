@@ -10,13 +10,14 @@
 
 - (instancetype)init {
   NSRect frame = NSMakeRect(0, 0, 1280, 720);
-  NSWindowStyleMask style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
-                            NSWindowStyleMaskMiniaturizable |
-                            NSWindowStyleMaskResizable;
-  NSWindow *window = [[NSWindow alloc] initWithContentRect:frame
-                                                styleMask:style
-                                                  backing:NSBackingStoreBuffered
-                                                    defer:NO];
+  NSWindowStyleMask style =
+      NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
+      NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable;
+  NSWindow *window =
+      [[NSWindow alloc] initWithContentRect:frame
+                                  styleMask:style
+                                    backing:NSBackingStoreBuffered
+                                      defer:NO];
   window.title = @"Scribe";
   window.minSize = NSMakeSize(960, 540);
   [window center];
@@ -56,7 +57,8 @@
     [stage.bottomAnchor constraintEqualToAnchor:_controlView.topAnchor],
 
     [_controlView.leadingAnchor constraintEqualToAnchor:content.leadingAnchor],
-    [_controlView.trailingAnchor constraintEqualToAnchor:content.trailingAnchor],
+    [_controlView.trailingAnchor
+        constraintEqualToAnchor:content.trailingAnchor],
     [_controlView.bottomAnchor constraintEqualToAnchor:content.bottomAnchor],
     [_controlView.heightAnchor constraintEqualToConstant:168],
   ]];
