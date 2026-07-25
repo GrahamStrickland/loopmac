@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.11] - 2026-07-25
+
+### Changed
+
+- Moved PIMPL idom from `capture` module into `AudioManager` in `app` module
+
 ## [0.0.10] - 2026-07-24
 
 ### Changed
