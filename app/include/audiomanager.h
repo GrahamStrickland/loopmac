@@ -1,43 +1,86 @@
-#ifndef AUDIO_MANAGER_H
-#define AUDIO_MANAGER_H
+#ifndef AUDIOMANAGER_H
+#define AUDIOMANAGER_H
 
 #include <functional>
 
-#include "capture.h"
+/**
+ * @file audiomanager.h
+ * @brief UI-facing wrapper around the platform audio backend.
+ */
 
 /**
  * @class AudioManager
- * @brief Thin UI-facing wrapper around capture::audio_capture_manager.
+ * @brief Thin C++ wrapper around the Objective-C capture backend.
  *
- * Mirrors capture::permission_status and marshals the asynchronous permission
- * result back onto the main (UI) thread so AppKit callers can update views
- * directly from the callback.
+ * Exposes a pure C++ interface so it can be consumed both from plain C++
+ * translation units (e.g. the test suite) and from the Objective-C++ AppKit UI,
+ * without leaking Objective-C or Core Audio types into its callers. Internally
+ * it forwards to capture's `AudioCaptureManager`; it is the aggregation point
+ * for the capture, audio, and playback modules as those are migrated in.
  */
 class AudioManager {
 public:
+  /**
+   * @enum PermissionStatus
+   * @brief System audio-capture permission states.
+   *
+   * The enumerators mirror the ordering of the platform permission enum so a
+   * status can be mapped across the wrapper boundary by value.
+   */
   enum PermissionStatus {
-    NotDetermined = capture::PermissionStatusNotDetermined,
-    Denied = capture::PermissionStatusDenied,
-    Authorized = capture::PermissionStatusAuthorized,
-    Restricted = capture::PermissionStatusRestricted,
+    NotDetermined,
+    Denied,
+    Authorized,
+    Restricted
   };
 
+  /**
+   * @brief Construct a new AudioManager, initializing the capture backend.
+   */
   AudioManager();
+
+  /**
+   * @brief Destroy the AudioManager and release the capture backend.
+   */
   ~AudioManager();
 
+  // The wrapper owns a single backend instance; copying would double-own it.
+  AudioManager(const AudioManager &) = delete;
+  AudioManager &operator=(const AudioManager &) = delete;
+
+  /**
+   * @brief Retrieve the current audio-capture permission state.
+   * @return The current `PermissionStatus`.
+   */
   PermissionStatus getPermission();
 
-  // Fire-and-forget: returns immediately and invokes `callback` on the main
-  // thread once the user responds to the system prompt, so the UI thread is
-  // never blocked and callers may touch views directly from the callback.
+  /**
+   * @brief Request audio-capture permission asynchronously.
+   * @param callback Invoked with the resulting `PermissionStatus` once the
+   * request resolves.
+   *
+   * The callback is always delivered on the main thread, so callers may update
+   * UI directly from it.
+   */
   void requestPermission(std::function<void(PermissionStatus)> callback);
 
+  /**
+   * @brief Start capturing system audio.
+   * @return `true` if capture started (or was already running), `false`
+   * otherwise. Failures are logged.
+   */
   bool startCapture();
 
+  /**
+   * @brief Stop the current capture session.
+   * @return `true` if capture stopped (or was already stopped), `false`
+   * otherwise. Failures are logged.
+   */
   bool stopCapture();
 
 private:
-  capture::audio_capture_manager captureManager;
+  struct impl;
+  impl *pimpl;
 };
 
-#endif // AUDIO_MANAGER_H
+#endif // AUDIOMANAGER_H

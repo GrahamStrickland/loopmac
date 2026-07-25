@@ -1,17 +1,27 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "audiomanager.h"
-#include "capture.h"
-#include "test_utils.h"
+
+namespace {
+bool is_valid_permission_status(AudioManager::PermissionStatus status) {
+  switch (status) {
+  case AudioManager::NotDetermined:
+  case AudioManager::Denied:
+  case AudioManager::Authorized:
+  case AudioManager::Restricted:
+    return true;
+  default:
+    return false;
+  }
+}
+} // namespace
 
 // requestPermission() is intentionally not covered: it only resolves once the
 // user answers the interactive system prompt, which cannot be automated.
 TEST_CASE("getPermission returns a valid status", "[audio_manager]") {
   AudioManager audioManager;
-  auto result =
-      static_cast<capture::permission_status>(audioManager.getPermission());
 
-  REQUIRE(test_utils::is_valid_permission_status(result));
+  REQUIRE(is_valid_permission_status(audioManager.getPermission()));
 }
 
 TEST_CASE("stopCapture on an idle manager succeeds", "[audio_manager]") {
