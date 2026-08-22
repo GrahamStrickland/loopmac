@@ -88,7 +88,8 @@ bool AudioManager::stopCapture() {
   }
 }
 
-bool AudioManager::writeCapturedAudio(std::string filename, std::string &uiError) {
+bool AudioManager::writeCapturedAudio(std::string filename,
+                                      std::string &uiError) {
   std::string errorMessage;
   const bool succeeded =
       _audioEngine->export_audio_data_to_wav(filename, errorMessage);

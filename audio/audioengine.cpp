@@ -30,7 +30,8 @@ bool audio_engine::export_audio_data_to_wav(const std::string &filename,
                                             std::string &error_msg) {
   std::ofstream out_file(filename, std::ios::binary);
   if (!out_file.is_open()) {
-    error_msg = std::string("Failed to write to file " + filename + ": " + std::strerror(errno));
+    error_msg = std::string("Failed to write to file " + filename + ": " +
+                            std::strerror(errno));
     return false;
   }
 

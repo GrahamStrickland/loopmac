@@ -4,7 +4,7 @@
 #include <functional>
 
 namespace audio {
-  class audio_engine;
+class audio_engine;
 } // namespace audio
 
 /**
