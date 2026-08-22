@@ -1014,16 +1014,16 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   PermissionStatus audioPermissionStatus;
   switch (audioResult) {
   case 0:
-    audioPermissionStatus = PermissionStatus::PermissionStatusAuthorized;
+    audioPermissionStatus = PermissionStatus::PermissionStatusNotDetermined;
     break;
   case 1:
     audioPermissionStatus = PermissionStatus::PermissionStatusDenied;
     break;
   case 2:
-    audioPermissionStatus = PermissionStatus::PermissionStatusNotDetermined;
+    audioPermissionStatus = PermissionStatus::PermissionStatusAuthorized;
     break;
   default:
-    audioPermissionStatus = PermissionStatus::PermissionStatusNotDetermined;
+    audioPermissionStatus = PermissionStatus::PermissionStatusRestricted;
     break;
   }
 

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.12] - 2026-08-22
+
+### Fixed
+
+- Mismatch in capture permissions causing audio capture to fail
+
+### Added
+
+- `audio_engine` for storing PCM audio data and saving to `.wav` file
+- `.wav` file saving via dialog
+
 ## [0.0.11] - 2026-07-25
 
 ### Changed

@@ -1,4 +1,4 @@
-add_library(audio STATIC ${CMAKE_CURRENT_SOURCE_DIR}/audio.cpp)
+add_library(audio STATIC ${CMAKE_CURRENT_SOURCE_DIR}/audioengine.cpp)
 
 target_compile_features(audio PUBLIC cxx_std_23)
 

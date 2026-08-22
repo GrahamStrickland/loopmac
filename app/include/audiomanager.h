@@ -3,6 +3,10 @@
 
 #include <functional>
 
+namespace audio {
+  class audio_engine;
+} // namespace audio
+
 /**
  * @file audiomanager.h
  * @brief UI-facing wrapper around the platform audio backend.
@@ -73,9 +77,19 @@ public:
    */
   bool stopCapture();
 
+  /**
+   * @brief Write the captured audio to a file with name `filename`.
+   * @param filename Name of file to be written to.
+   * @param uiError Error string for display in application UI.
+   * @return `true` if writing to file succeeded, `false`
+   * otherwise. Failures are logged.
+   */
+  bool writeCapturedAudio(std::string filename, std::string &uiError);
+
 private:
   struct impl;
   impl *pimpl;
+  audio::audio_engine *_audioEngine;
 };
 
 #endif // AUDIOMANAGER_H

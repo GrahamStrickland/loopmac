@@ -9,7 +9,7 @@ add_library(scribe_lib STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include/playbackengine.h
 )
 target_include_directories(scribe_lib PUBLIC include)
-target_link_libraries(scribe_lib PUBLIC capture utils "-framework AVFoundation")
+target_link_libraries(scribe_lib PUBLIC audio capture utils "-framework AVFoundation")
 target_compile_options(scribe_lib PRIVATE -fobjc-arc)
 
 add_executable(Scribe MACOSX_BUNDLE

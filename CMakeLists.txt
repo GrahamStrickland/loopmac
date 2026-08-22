@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 project(Scribe 
-    VERSION 0.0.11
+    VERSION 0.0.12
     DESCRIPTION "Audio loopback and replay application for transcription"
     HOMEPAGE_URL "https://github.com/GrahamStrickland/scribe"
     LANGUAGES CXX OBJCXX

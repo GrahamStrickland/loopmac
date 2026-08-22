@@ -1,5 +1,6 @@
 #import "playbackcontrolview.h"
 
+#import <Foundation/Foundation.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 #import "audiomanager.h"
@@ -255,6 +256,43 @@ static const CGFloat kButtonSize = 30.0;
   }
 }
 
+- (void)saveDocument {
+  NSSavePanel *panel = [NSSavePanel savePanel];
+  UTType *wavType = [UTType typeWithIdentifier:@"com.microsoft.waveform-audio"];
+  if (wavType) {
+    panel.allowedContentTypes = @[ wavType ];
+  }
+  panel.message = @"Please choose a location to save captured audio file";
+
+  [panel setCanCreateDirectories:YES];
+  [panel setExtensionHidden:NO];
+
+  [panel beginSheetModalForWindow:self.window
+                completionHandler:^(NSModalResponse response) {
+                  if (response != NSModalResponseOK) {
+                    return;
+                  }
+                  NSError *error = nil;
+
+                  std::string errorMessage;
+                  NSURL *url = panel.URL;
+                  NSString *path = [url path];
+                  bool success = _audioManager.writeCapturedAudio(
+                      std::string([path UTF8String]), errorMessage);
+                  if (!success) {
+                    NSString *errorMsg =
+                        [NSString stringWithUTF8String:errorMessage.c_str()];
+                    NSDictionary *userInfo =
+                        @{NSLocalizedDescriptionKey : errorMsg};
+
+                    error = [NSError errorWithDomain:@"playback-control-view"
+                                                code:0
+                                            userInfo:userInfo];
+                    [self presentPlaybackError:error];
+                  }
+                }];
+}
+
 - (void)startRecording {
   if (_audioManager.startCapture()) {
     ScribeLog("PlaybackControlView",
@@ -270,6 +308,8 @@ static const CGFloat kButtonSize = 30.0;
   if (_audioManager.stopCapture()) {
     ScribeLog("PlaybackControlView", "Stopping recording");
     _recording = NO;
+
+    [self saveDocument];
   }
   [self refresh];
 }

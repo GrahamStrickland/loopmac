@@ -1,6 +1,7 @@
 #include "audiomanager.h"
 
 #import "audiocapturemanager.h"
+#import "audioengine.h"
 #import "logutil.h"
 
 #import <Foundation/Foundation.h>
@@ -25,10 +26,23 @@ std::string describe_error(NSError *error) {
 } // namespace
 
 AudioManager::AudioManager() : pimpl(new impl) {
+  _audioEngine = new audio::audio_engine();
   pimpl->captureManager = [[AudioCaptureManager alloc] init];
+  [pimpl->captureManager setAudioDataCallback:^(NSData *audioData) {
+    if (!audioData)
+      return;
+
+    const void *rawBytes = [audioData bytes];
+    std::size_t byteLength = [audioData length];
+
+    _audioEngine->write_audio_data(rawBytes, byteLength);
+  }];
 }
 
-AudioManager::~AudioManager() { delete pimpl; }
+AudioManager::~AudioManager() {
+  delete pimpl;
+  delete _audioEngine;
+}
 
 AudioManager::PermissionStatus AudioManager::getPermission() {
   return static_cast<AudioManager::PermissionStatus>(
@@ -72,4 +86,15 @@ bool AudioManager::stopCapture() {
     }
     return succeeded;
   }
+}
+
+bool AudioManager::writeCapturedAudio(std::string filename, std::string &uiError) {
+  std::string errorMessage;
+  const bool succeeded =
+      _audioEngine->export_audio_data_to_wav(filename, errorMessage);
+  uiError = errorMessage;
+  if (!succeeded) {
+    ScribeLog("AudioManager", errorMessage, OS_LOG_TYPE_ERROR);
+  }
+  return succeeded;
 }
