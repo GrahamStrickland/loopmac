@@ -49,3 +49,6 @@ app/qml/qml/
 # VSCode files
 *.code-workspace
 launch.json
+
+# Audio files
+*.wav
