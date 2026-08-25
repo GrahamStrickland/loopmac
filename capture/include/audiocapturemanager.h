@@ -41,7 +41,6 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
   // Audio properties
   AudioDeviceID _aggregateDeviceID;
   AudioDeviceIOProcID _deviceProcID;
-  AudioStreamBasicDescription _targetFormat;
   AudioStreamBasicDescription _sourceFormat;
   AudioObjectPropertyListenerBlock _deviceChangeListener;
 
