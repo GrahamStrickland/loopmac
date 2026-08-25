@@ -295,7 +295,7 @@ static const CGFloat kButtonSize = 30.0;
 
 - (void)startRecording {
   if (_audioManager.startCapture()) {
-    ScribeLog("PlaybackControlView",
+    scribe_log("PlaybackControlView",
               "Audio capture authorized - starting recording");
     _recording = YES;
 
@@ -306,7 +306,7 @@ static const CGFloat kButtonSize = 30.0;
 
 - (void)stopRecording {
   if (_audioManager.stopCapture()) {
-    ScribeLog("PlaybackControlView", "Stopping recording");
+    scribe_log("PlaybackControlView", "Stopping recording");
     _recording = NO;
 
     [self saveDocument];

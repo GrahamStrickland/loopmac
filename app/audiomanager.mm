@@ -71,7 +71,7 @@ bool AudioManager::startCapture() {
     NSError *error = nil;
     const bool succeeded = [pimpl->captureManager startCapture:&error];
     if (!succeeded) {
-      ScribeLog("AudioManager", describe_error(error), OS_LOG_TYPE_ERROR);
+      scribe_log("AudioManager", describe_error(error), OS_LOG_TYPE_ERROR);
     }
     return succeeded;
   }
@@ -82,7 +82,7 @@ bool AudioManager::stopCapture() {
     NSError *error = nil;
     const bool succeeded = [pimpl->captureManager stopCapture:&error];
     if (!succeeded) {
-      ScribeLog("AudioManager", describe_error(error), OS_LOG_TYPE_ERROR);
+      scribe_log("AudioManager", describe_error(error), OS_LOG_TYPE_ERROR);
     }
     return succeeded;
   }
@@ -95,7 +95,7 @@ bool AudioManager::writeCapturedAudio(std::string filename,
       _audioEngine->export_audio_data_to_wav(filename, errorMessage);
   uiError = errorMessage;
   if (!succeeded) {
-    ScribeLog("AudioManager", errorMessage, OS_LOG_TYPE_ERROR);
+    scribe_log("AudioManager", errorMessage, OS_LOG_TYPE_ERROR);
   }
   return succeeded;
 }

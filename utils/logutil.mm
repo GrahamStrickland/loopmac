@@ -9,12 +9,12 @@
 
 namespace {
 // Human-readable name and ANSI color used when mirroring a log type to stderr.
-struct StderrStyle {
+struct stderr_style {
   const char *name;
   const char *color; // ANSI SGR sequence, or "" for the terminal default
 };
 
-StderrStyle StyleForType(os_log_type_t type) {
+stderr_style StyleForType(os_log_type_t type) {
   switch (type) {
   case OS_LOG_TYPE_FAULT:
     return {"fault", "\033[91m"}; // bright red
@@ -36,7 +36,7 @@ namespace {
 // on first use. Console groups messages by category, so each component gets its
 // own log object. The objects are intentionally never released: there is a
 // small, fixed set of components and they live for the life of the process.
-os_log_t LogForComponent(const std::string &component) {
+os_log_t log_for_component(const std::string &component) {
   static std::mutex mutex;
   static std::unordered_map<std::string, os_log_t> logs;
 
@@ -50,16 +50,16 @@ os_log_t LogForComponent(const std::string &component) {
 }
 } // namespace
 
-void ScribeLog(const std::string &component, const std::string &message,
+void scribe_log(const std::string &component, const std::string &message,
                os_log_type_t type) {
-  os_log_with_type(LogForComponent(component), type, "%{public}s",
+  os_log_with_type(log_for_component(component), type, "%{public}s",
                    message.c_str());
 
 #ifdef scribe_LOG_STDERR
   // Debug builds also mirror to stderr, since os_log does not write to the
   // terminal. ANSI colors are only emitted when stderr is an interactive
   // terminal, so redirected logs stay free of escape codes.
-  const StderrStyle style = StyleForType(type);
+  const stderr_style style = StyleForType(type);
   const bool tty = isatty(fileno(stderr)) != 0;
   fprintf(stderr, "%s[%s] [%s] %s%s\n", tty ? style.color : "", style.name,
           component.c_str(), message.c_str(), tty ? "\033[0m" : "");

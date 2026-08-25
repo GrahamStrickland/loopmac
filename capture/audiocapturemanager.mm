@@ -30,7 +30,7 @@ static AudioCaptureManager *sharedInstance = nil;
 + (instancetype)sharedInstance {
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
-    ScribeLog("AudioCaptureManager", "Creating singleton instance");
+    scribe_log("AudioCaptureManager", "Creating singleton instance");
     sharedInstance = [[self alloc] init];
   });
   return sharedInstance;
@@ -63,13 +63,13 @@ static AudioCaptureManager *sharedInstance = nil;
     if ([self checkTCCPermission:@"kTCCServiceAudioCapture"] == 0) {
       NSError *error = nil;
       if (![self setupAudioTapIfNeeded:&error]) {
-        ScribeLog("AudioCaptureManager",
+        scribe_log("AudioCaptureManager",
                   std::string("Failed to setup audio tap: ") +
                       std::string([error.localizedDescription UTF8String]),
                   OS_LOG_TYPE_ERROR);
       }
       if (![self setupAggregateDeviceIfNeeded:&error]) {
-        ScribeLog("AudioCaptureManager",
+        scribe_log("AudioCaptureManager",
                   std::string("Failed to setup aggregate device: ") +
                       std::string([error.localizedDescription UTF8String]),
                   OS_LOG_TYPE_ERROR);
@@ -82,13 +82,13 @@ static AudioCaptureManager *sharedInstance = nil;
 }
 
 - (void)dealloc {
-  ScribeLog("AudioCaptureManager", "Deallocating");
+  scribe_log("AudioCaptureManager", "Deallocating");
   [self stopDeviceMonitoring];
   [self destroyAudioResources];
   [_audioDataCallback release];
   _audioDataCallback = nil;
   if (_tccHandle) {
-    ScribeLog("AudioCaptureManager", "Closing TCC framework handle");
+    scribe_log("AudioCaptureManager", "Closing TCC framework handle");
     dlclose(_tccHandle);
   }
   [super dealloc];
@@ -101,7 +101,7 @@ static AudioCaptureManager *sharedInstance = nil;
     return YES;
   }
 
-  ScribeLog("AudioCaptureManager", "Starting audio capture");
+  scribe_log("AudioCaptureManager", "Starting audio capture");
 
   auto permission = [self getPermission];
   if (permission != PermissionStatus::PermissionStatusAuthorized) {
@@ -128,9 +128,9 @@ static AudioCaptureManager *sharedInstance = nil;
   }
 
   // Log device IDs for debugging
-  ScribeLog("AudioCaptureManager",
+  scribe_log("AudioCaptureManager",
             "Using aggregate device ID: " + std::to_string(_aggregateDeviceID));
-  ScribeLog("AudioCaptureManager",
+  scribe_log("AudioCaptureManager",
             "Tap object ID: " + std::to_string(_tapObjectID));
 
   // Set up IO proc for the aggregate device instead of tap
@@ -175,7 +175,7 @@ static AudioCaptureManager *sharedInstance = nil;
   }
 
   _isCapturing = YES;
-  ScribeLog("AudioCaptureManager", "Audio capture started successfully");
+  scribe_log("AudioCaptureManager", "Audio capture started successfully");
   return YES;
 }
 
@@ -184,7 +184,7 @@ static AudioCaptureManager *sharedInstance = nil;
     return YES;
   }
 
-  ScribeLog("AudioCaptureManager", "Stopping audio capture");
+  scribe_log("AudioCaptureManager", "Stopping audio capture");
 
   // Stop and destroy the IO proc on the aggregate device
   if (_deviceProcID != NULL) {
@@ -218,7 +218,7 @@ static AudioCaptureManager *sharedInstance = nil;
   }
 
   _isCapturing = NO;
-  ScribeLog("AudioCaptureManager", "Audio capture stopped successfully");
+  scribe_log("AudioCaptureManager", "Audio capture stopped successfully");
   return YES;
 }
 
@@ -251,7 +251,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   @autoreleasepool {
     // Validate input data
     if (!bufferList || bufferList->mNumberBuffers == 0) {
-      ScribeLog("AudioCaptureManager", "Invalid buffer list received",
+      scribe_log("AudioCaptureManager", "Invalid buffer list received",
                 OS_LOG_TYPE_ERROR);
       return;
     }
@@ -274,7 +274,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
 
     // Validate frame count
     if (numFrames == 0) {
-      ScribeLog("AudioCaptureManager", "Invalid frame count",
+      scribe_log("AudioCaptureManager", "Invalid frame count",
                 OS_LOG_TYPE_ERROR);
       return;
     }
@@ -312,7 +312,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
         });
       }
     } @catch (NSException *exception) {
-      ScribeLog("AudioCaptureManager",
+      scribe_log("AudioCaptureManager",
                 std::string("Exception in handleAudioInput: ") +
                     std::string([exception.description UTF8String]),
                 OS_LOG_TYPE_ERROR);
@@ -323,14 +323,14 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
 - (Float32 *)convertToMono:(const AudioBufferList *)bufferList
                  numFrames:(UInt32)numFrames {
   if (!bufferList || bufferList->mNumberBuffers == 0) {
-    ScribeLog("AudioCaptureManager", "Invalid buffer list received",
+    scribe_log("AudioCaptureManager", "Invalid buffer list received",
               OS_LOG_TYPE_ERROR);
     return NULL;
   }
 
   const AudioBuffer *buffer = &bufferList->mBuffers[0];
   if (!buffer->mData || buffer->mDataByteSize == 0) {
-    ScribeLog("AudioCaptureManager", "Invalid buffer data received",
+    scribe_log("AudioCaptureManager", "Invalid buffer data received",
               OS_LOG_TYPE_ERROR);
     return NULL;
   }
@@ -348,7 +348,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   // Allocate mono buffer
   Float32 *monoBuffer = (Float32 *)calloc(numFrames, sizeof(Float32));
   if (!monoBuffer) {
-    ScribeLog("AudioCaptureManager",
+    scribe_log("AudioCaptureManager",
               "Failed to allocate memory for mono buffer", OS_LOG_TYPE_ERROR);
     return NULL;
   }
@@ -387,7 +387,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   UInt32 newFrameLength = (UInt32)(inputFrames / ratio);
 
   if (newFrameLength == 0) {
-    ScribeLog("AudioCaptureManager", "Invalid resampled frame length",
+    scribe_log("AudioCaptureManager", "Invalid resampled frame length",
               OS_LOG_TYPE_ERROR);
     return NULL;
   }
@@ -395,7 +395,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   // Allocate buffer for resampled data
   Float32 *resampledBuffer = (Float32 *)calloc(newFrameLength, sizeof(Float32));
   if (!resampledBuffer) {
-    ScribeLog("AudioCaptureManager",
+    scribe_log("AudioCaptureManager",
               "Failed to allocate memory for resampled buffer",
               OS_LOG_TYPE_ERROR);
     return NULL;
@@ -448,7 +448,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return YES;
   }
 
-  ScribeLog("AudioCaptureManager", "Setting up audio tap");
+  scribe_log("AudioCaptureManager", "Setting up audio tap");
 
   CATapDescription *desc =
       [[CATapDescription alloc] initMonoGlobalTapButExcludeProcesses:@[]];
@@ -478,7 +478,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return NO;
   }
 
-  ScribeLog("AudioCaptureManager", "Audio tap setup successfully");
+  scribe_log("AudioCaptureManager", "Audio tap setup successfully");
   return YES;
 }
 
@@ -489,7 +489,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return YES;
   }
 
-  ScribeLog("AudioCaptureManager", "Setting up aggregate device");
+  scribe_log("AudioCaptureManager", "Setting up aggregate device");
 
   // Get default input and output devices
   AudioDeviceID inputDeviceID, outputDeviceID;
@@ -516,7 +516,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return NO;
   }
 
-  ScribeLog("AudioCaptureManager",
+  scribe_log("AudioCaptureManager",
             "Got input device ID: " + std::to_string(inputDeviceID));
 
   // Get default output device
@@ -537,7 +537,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return NO;
   }
 
-  ScribeLog("AudioCaptureManager",
+  scribe_log("AudioCaptureManager",
             "Got output device ID: " + std::to_string(outputDeviceID));
 
   // Get device UIDs
@@ -564,7 +564,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return NO;
   }
 
-  ScribeLog("AudioCaptureManager",
+  scribe_log("AudioCaptureManager",
             "Got input device UID: " +
                 std::string([(__bridge NSString *)inputUID UTF8String]));
 
@@ -584,7 +584,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return NO;
   }
 
-  ScribeLog("AudioCaptureManager",
+  scribe_log("AudioCaptureManager",
             "Got output device UID: " +
                 std::string([(__bridge NSString *)outputUID UTF8String]));
 
@@ -614,7 +614,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return NO;
   }
 
-  ScribeLog("AudioCaptureManager",
+  scribe_log("AudioCaptureManager",
             "Input device sample rate: " + std::to_string(inputSampleRate));
 
   status = AudioObjectGetPropertyData(outputDeviceID, &sampleRateAddress, 0,
@@ -634,14 +634,14 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return NO;
   }
 
-  ScribeLog("AudioCaptureManager",
+  scribe_log("AudioCaptureManager",
             "Output device sample rate: " + std::to_string(outputSampleRate));
 
   // Choose master device based on lower sample rate
   NSString *masterDeviceUID = inputSampleRate <= outputSampleRate
                                   ? (__bridge NSString *)inputUID
                                   : (__bridge NSString *)outputUID;
-  ScribeLog("AudioCaptureManager",
+  scribe_log("AudioCaptureManager",
             "Selected master device UID: " +
                 std::string([masterDeviceUID UTF8String]) +
                 " (based on sample rate comparison: " +
@@ -649,7 +649,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
                 " <= " + std::to_string(outputSampleRate) + ")");
 
   NSUUID *aggregateUID = [NSUUID UUID];
-  ScribeLog("AudioCaptureManager",
+  scribe_log("AudioCaptureManager",
             "Created aggregate device UUID: " +
                 std::string([[aggregateUID UUIDString] UTF8String]));
 
@@ -711,10 +711,10 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
                                       NULL, sizeof(UInt32), &bufferSize);
 
   if (status == noErr) {
-    ScribeLog("AudioCaptureManager", "Set aggregate device buffer size to: " +
+    scribe_log("AudioCaptureManager", "Set aggregate device buffer size to: " +
                                          std::to_string(bufferSize));
   } else {
-    ScribeLog(
+    scribe_log(
         "AudioCaptureManager",
         "Failed to set aggregate device buffer size, continuing with default",
         OS_LOG_TYPE_ERROR);
@@ -726,7 +726,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
                                       NULL, &dataSize, &aggregateSampleRate);
 
   if (status == noErr) {
-    ScribeLog("AudioCaptureManager",
+    scribe_log("AudioCaptureManager",
               "Created aggregate device with ID: " +
                   std::to_string(aggregateDeviceID) +
                   ", sample rate: " + std::to_string(aggregateSampleRate));
@@ -743,30 +743,30 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
                                         NULL, &formatSize, &format);
 
     if (status == noErr) {
-      ScribeLog("AudioCaptureManager", "Aggregate device format details:");
-      ScribeLog("AudioCaptureManager",
+      scribe_log("AudioCaptureManager", "Aggregate device format details:");
+      scribe_log("AudioCaptureManager",
                 "- Sample rate: " + std::to_string(format.mSampleRate));
-      ScribeLog("AudioCaptureManager",
+      scribe_log("AudioCaptureManager",
                 "- Format ID: " + std::to_string(format.mFormatID));
-      ScribeLog("AudioCaptureManager",
+      scribe_log("AudioCaptureManager",
                 "- Format flags: " + std::to_string(format.mFormatFlags));
-      ScribeLog("AudioCaptureManager",
+      scribe_log("AudioCaptureManager",
                 "- Bytes per packet: " +
                     std::to_string(format.mBytesPerPacket));
-      ScribeLog("AudioCaptureManager",
+      scribe_log("AudioCaptureManager",
                 "- Frames per packet: " +
                     std::to_string(format.mFramesPerPacket));
-      ScribeLog("AudioCaptureManager",
+      scribe_log("AudioCaptureManager",
                 "- Byes per frame: " + std::to_string(format.mBytesPerFrame));
-      ScribeLog("AudioCaptureManager",
+      scribe_log("AudioCaptureManager",
                 "- Channels per frame: " +
                     std::to_string(format.mChannelsPerFrame));
-      ScribeLog("AudioCaptureManager",
+      scribe_log("AudioCaptureManager",
                 "- Bits per channel: " +
                     std::to_string(format.mBitsPerChannel));
       bool isInterleaved =
           !(format.mFormatFlags & kAudioFormatFlagIsNonInterleaved);
-      ScribeLog("AudioCaptureManager",
+      scribe_log("AudioCaptureManager",
                 "- Is interleaved: " +
                     std::string(isInterleaved ? "yes" : "no"));
     }
@@ -774,14 +774,14 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   }
 
   _aggregateDeviceID = aggregateDeviceID;
-  ScribeLog("AudioCaptureManager", "Aggregate device setup successfully");
+  scribe_log("AudioCaptureManager", "Aggregate device setup successfully");
   return YES;
 }
 
 #pragma mark - Device Monitoring
 
 - (void)startDeviceMonitoring {
-  ScribeLog("AudioCaptureManager", "Starting device monitoring");
+  scribe_log("AudioCaptureManager", "Starting device monitoring");
 
   // Set up device change listener for both input and output devices
   AudioObjectPropertyAddress propertyAddress = {
@@ -802,7 +802,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
       self->_deviceChangeListener);
 
   if (status != noErr) {
-    ScribeLog("AudioCaptureManager",
+    scribe_log("AudioCaptureManager",
               "Failed to add input device change listener", OS_LOG_TYPE_ERROR);
     return;
   }
@@ -814,16 +814,16 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
       self->_deviceChangeListener);
 
   if (status != noErr) {
-    ScribeLog("AudioCaptureManager",
+    scribe_log("AudioCaptureManager",
               "Failed to add output device change listener", OS_LOG_TYPE_ERROR);
     return;
   }
 
-  ScribeLog("AudioCaptureManager", "Device monitoring started successfully");
+  scribe_log("AudioCaptureManager", "Device monitoring started successfully");
 }
 
 - (void)handleDeviceChange {
-  ScribeLog("AudioCaptureManager", "Handling device change");
+  scribe_log("AudioCaptureManager", "Handling device change");
 
   // If we're currently capturing, we need to recreate the audio setup
   BOOL wasCapturing = _isCapturing;
@@ -831,7 +831,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     NSError *error = nil;
     [self stopCapture:&error];
     if (error) {
-      ScribeLog("AudioCaptureManager",
+      scribe_log("AudioCaptureManager",
                 std::string("Failed to stop capture after device change: ") +
                     std::string([error.localizedDescription UTF8String]),
                 OS_LOG_TYPE_ERROR);
@@ -844,7 +844,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
 
   NSError *error = nil;
   if (![self setupAudioTapIfNeeded:&error]) {
-    ScribeLog("AudioCaptureManager",
+    scribe_log("AudioCaptureManager",
               std::string("Failed to setup audio tap after device change: ") +
                   std::string([error.localizedDescription UTF8String]),
               OS_LOG_TYPE_ERROR);
@@ -852,7 +852,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   }
 
   if (![self setupAggregateDeviceIfNeeded:&error]) {
-    ScribeLog(
+    scribe_log(
         "AudioCaptureManager",
         std::string("Failed to setup aggregate device after device change: ") +
             std::string([error.localizedDescription UTF8String]),
@@ -865,7 +865,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     NSError *error = nil;
     [self startCapture:&error];
     if (error) {
-      ScribeLog("AudioCaptureManager",
+      scribe_log("AudioCaptureManager",
                 std::string("Failed to start capture after device change: ") +
                     std::string([error.localizedDescription UTF8String]),
                 OS_LOG_TYPE_ERROR);
@@ -873,11 +873,11 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     }
   }
 
-  ScribeLog("AudioCaptureManager", "Device change handled successfully");
+  scribe_log("AudioCaptureManager", "Device change handled successfully");
 }
 
 - (void)stopDeviceMonitoring {
-  ScribeLog("AudioCaptureManager", "Stopping device monitoring");
+  scribe_log("AudioCaptureManager", "Stopping device monitoring");
 
   if (_deviceChangeListener) {
     // REmove input device listener
@@ -900,11 +900,11 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     _deviceChangeListener = nil;
   }
 
-  ScribeLog("AudioCaptureManager", "Device monitoring stopped");
+  scribe_log("AudioCaptureManager", "Device monitoring stopped");
 }
 
 - (void)destroyAudioResources {
-  ScribeLog("AudioCaptureManager", "Destroying audio resources");
+  scribe_log("AudioCaptureManager", "Destroying audio resources");
 
   if (_deviceProcID && _aggregateDeviceID != kAudioDeviceUnknown) {
     AudioDeviceDestroyIOProcID(_aggregateDeviceID, _deviceProcID);
@@ -925,26 +925,26 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     _aggregateDeviceID = kAudioDeviceUnknown;
   }
 
-  ScribeLog("AudioCaptureManager", "Audio resources destroyed");
+  scribe_log("AudioCaptureManager", "Audio resources destroyed");
 }
 
 #pragma mark - TCC Framework Methods
 
 - (void)initializeTCCFramework {
-  ScribeLog("AudioCaptureManager", "Initializing TCC framework");
+  scribe_log("AudioCaptureManager", "Initializing TCC framework");
 
   // Load TCC framework
   NSString *tccPath =
       @"/System/Library/PrivateFrameworks/TCC.framework/Versions/A/TCC";
   _tccHandle = dlopen([tccPath UTF8String], RTLD_NOW);
   if (!_tccHandle) {
-    ScribeLog("AudioCaptureManager",
+    scribe_log("AudioCaptureManager",
               std::string("Failed to load TCC framework: ") +
                   std::string(dlerror()),
               OS_LOG_TYPE_ERROR);
     return;
   }
-  ScribeLog("AudioCaptureManager", "Successfully loaded TCC framework");
+  scribe_log("AudioCaptureManager", "Successfully loaded TCC framework");
 
   // Get function pointers
   _preflightFunc =
@@ -952,7 +952,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   _requestFunc = (TCCRequestFuncType)dlsym(_tccHandle, "TCCAccessRequest");
 
   if (!_preflightFunc || !_requestFunc) {
-    ScribeLog("AudioCaptureManager",
+    scribe_log("AudioCaptureManager",
               std::string("Failed to get TCC function pointers: ") +
                   std::string(dlerror()),
               OS_LOG_TYPE_ERROR);
@@ -960,22 +960,22 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     _tccHandle = NULL;
     return;
   }
-  ScribeLog("AudioCaptureManager", "Successfully initialized TCC functions");
+  scribe_log("AudioCaptureManager", "Successfully initialized TCC functions");
 }
 
 - (int)checkTCCPermission:(NSString *)service {
-  ScribeLog("AudioCaptureManager", "Checking TCC permission for service: " +
+  scribe_log("AudioCaptureManager", "Checking TCC permission for service: " +
                                        std::string([service UTF8String]));
 
   if (!_preflightFunc) {
-    ScribeLog("AudioCaptureManager", "TCC preflight function not available",
+    scribe_log("AudioCaptureManager", "TCC preflight function not available",
               OS_LOG_TYPE_ERROR);
     return PermissionStatusNotDetermined; // Not determined
   }
 
   auto result = _preflightFunc((__bridge CFStringRef)service, NULL);
 
-  ScribeLog("AudioCaptureManager",
+  scribe_log("AudioCaptureManager",
             "TCC permission result: " + std::to_string(result));
 
   return result;
@@ -983,18 +983,18 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
 
 - (void)requestTCCPermission:(NSString *)service
                   completion:(void (^)(BOOL granted))completion {
-  ScribeLog("AudioCaptureManager", "Requesting TCC permission for service: " +
+  scribe_log("AudioCaptureManager", "Requesting TCC permission for service: " +
                                        std::string([service UTF8String]));
 
   if (!_requestFunc) {
-    ScribeLog("AudioCaptureManager", "TCC request function not available",
+    scribe_log("AudioCaptureManager", "TCC request function not available",
               OS_LOG_TYPE_ERROR);
     completion(NO);
     return;
   }
 
   _requestFunc((__bridge CFStringRef)service, NULL, ^(BOOL granted) {
-    ScribeLog(
+    scribe_log(
         "AudioCaptureManager",
         "TCC permission request for " + std::string([service UTF8String]) +
             " completed with result: " + (granted ? "granted" : "denied"));
@@ -1005,7 +1005,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
 #pragma mark - Permission Methods
 
 - (PermissionStatus)getPermission {
-  ScribeLog("AudioCaptureManager", "Getting permission");
+  scribe_log("AudioCaptureManager", "Getting permission");
 
   // Check audio recording permission using TCC
   auto audioResult =
@@ -1013,21 +1013,21 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
 
   PermissionStatus audioPermissionStatus(audioResult);
 
-  ScribeLog("AudioCaptureManager",
+  scribe_log("AudioCaptureManager",
             "System audio permission status: " + std::to_string(audioResult));
 
   return audioPermissionStatus;
 }
 
 - (void)requestPermission:(void (^)(PermissionStatus))completion {
-  ScribeLog("AudioCaptureManager", "Requesting permission");
+  scribe_log("AudioCaptureManager", "Requesting permission");
 
   [self requestTCCPermission:@"kTCCServiceAudioCapture"
                   completion:^(BOOL granted) {
                     auto status =
                         granted ? PermissionStatus::PermissionStatusAuthorized
                                 : PermissionStatus::PermissionStatusDenied;
-                    ScribeLog("AudioCaptureManager",
+                    scribe_log("AudioCaptureManager",
                               "System audio permission request completed with "
                               "status: " +
                                   std::to_string(status));
