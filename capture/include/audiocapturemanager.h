@@ -17,9 +17,9 @@
  * @brief Represents the current status of audio permission.
  */
 typedef NS_ENUM(NSInteger, PermissionStatus) {
-  PermissionStatusNotDetermined,
-  PermissionStatusDenied,
   PermissionStatusAuthorized,
+  PermissionStatusDenied,
+  PermissionStatusNotDetermined,
   PermissionStatusRestricted
 };
 

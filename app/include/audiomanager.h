@@ -31,7 +31,7 @@ public:
    * The enumerators mirror the ordering of the platform permission enum so a
    * status can be mapped across the wrapper boundary by value.
    */
-  enum PermissionStatus { NotDetermined, Denied, Authorized, Restricted };
+  enum PermissionStatus { Authorized, Denied, NotDetermined, Restricted };
 
   /**
    * @brief Construct a new AudioManager, initializing the capture backend.

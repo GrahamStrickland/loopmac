@@ -1011,21 +1011,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
   auto audioResult =
       (PermissionStatus)[self checkTCCPermission:@"kTCCServiceAudioCapture"];
 
-  PermissionStatus audioPermissionStatus;
-  switch (audioResult) {
-  case 0:
-    audioPermissionStatus = PermissionStatus::PermissionStatusNotDetermined;
-    break;
-  case 1:
-    audioPermissionStatus = PermissionStatus::PermissionStatusDenied;
-    break;
-  case 2:
-    audioPermissionStatus = PermissionStatus::PermissionStatusAuthorized;
-    break;
-  default:
-    audioPermissionStatus = PermissionStatus::PermissionStatusRestricted;
-    break;
-  }
+  PermissionStatus audioPermissionStatus(audioResult);
 
   ScribeLog("AudioCaptureManager",
             "System audio permission status: " + std::to_string(audioResult));
